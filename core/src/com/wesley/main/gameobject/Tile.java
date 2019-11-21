@@ -2,13 +2,12 @@ package com.wesley.main.gameobject;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 public class Tile {
-    SpriteBatch _spriteBatch;
-    ShapeRenderer _shapeRenderer;
     BitmapFont _bitmapFont;
     Color _bgColor;
     int _value;
@@ -33,8 +32,6 @@ public class Tile {
     }
 
     public Tile() {
-        this._spriteBatch = new SpriteBatch();
-        this._shapeRenderer = new ShapeRenderer();
         this._bitmapFont = new BitmapFont();
         this._bitmapFont.setColor(Color.BLACK);
         this._bitmapFont.getData().setScale(5);
@@ -49,7 +46,7 @@ public class Tile {
         this._borderWeight = _borderWeight;
         this._innerTileSize = this._tileSize - this._borderWeight;
         this._offset = this._tileSize / 2;
-        this._innerOffset = this._innerTileSize / 2;
+        this._innerOffset = this._borderWeight / 2;
     }
     public void setPosition(Vector2 position) {
         this._position = position;
@@ -94,23 +91,23 @@ public class Tile {
         }
     }
 
-    public void draw() {
-        this._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        this._shapeRenderer.setColor(Color.BLACK);
-        this._shapeRenderer.rect(this._position.x - this._offset, this._position.y - this._offset, this._tileSize, this._tileSize);
-        this._shapeRenderer.setColor(this._bgColor);
-        this._shapeRenderer.rect(this._position.x, this._position.y - this._innerOffset, this._innerTileSize, this._innerTileSize);
-        this._shapeRenderer.end();
-        this._spriteBatch.begin();
+    public void drawSquare(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.rect(this._position.x, this._position.y, this._tileSize, this._tileSize);
+        shapeRenderer.setColor(this._bgColor);
+        shapeRenderer.rect(this._position.x + _innerOffset, this._position.y + _innerOffset, this._innerTileSize, this._innerTileSize);
+    }
 
-        this._bitmapFont.draw(this._spriteBatch, String.valueOf(_value) ,this._position.x, this._position.y+30, 0, 1, false);
-        this._spriteBatch.end();
-
+    public void writeValue(SpriteBatch spriteBatch) {
+        if (_value != 0) {
+            this._bitmapFont.draw(spriteBatch,
+                                  String.valueOf(_value),
+                                  this._position.x + (_offset * 0.75f),
+                                  this._position.y + (_offset * 1.25f ));
+        }
     }
 
     public void dispose() {
-        this._spriteBatch.dispose();
-        this._shapeRenderer.dispose();
         this._bitmapFont.dispose();
     }
 }

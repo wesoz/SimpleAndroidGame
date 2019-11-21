@@ -7,12 +7,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.wesley.main.gameobject.Tile;
 import com.wesley.main.screen.Board;
 
 public class Game extends ApplicationAdapter {
 	SpriteBatch _batch;
+	ShapeRenderer _renderer;
 	Texture _img;
 	Vector2 _mousePosition;
 	BitmapFont _font;
@@ -23,6 +25,7 @@ public class Game extends ApplicationAdapter {
 	
 	@Override
 	public void create () {
+		this._renderer = new ShapeRenderer();
 		this._batch = new SpriteBatch();
 		this._img = new Texture("badlogic.jpg");
 		this._mousePosition = new Vector2(Gdx.app.getGraphics().getWidth()/2, Gdx.app.getGraphics().getHeight() / 2);
@@ -48,9 +51,13 @@ public class Game extends ApplicationAdapter {
 		String text = _mouseX + "," + _mouseY;
 		this._tile.setPosition(this._mousePosition);
 		this._board.draw();
-		this._tile.draw();
+
+		this._renderer.begin(ShapeRenderer.ShapeType.Filled);
+		this._tile.drawSquare(this._renderer);
+		this._renderer.end();
 
 		this._batch.begin();
+		this._tile.writeValue(this._batch);
 		this._font.draw(this._batch,text,100,100);
 		this._batch.end();
 
@@ -59,5 +66,10 @@ public class Game extends ApplicationAdapter {
 	
 	@Override
 	public void dispose () {
+		this._batch.dispose();
+		this._img.dispose();
+		this._font.dispose();
+		this._tile.dispose();
+		this._board.dispose();
 	}
 }
