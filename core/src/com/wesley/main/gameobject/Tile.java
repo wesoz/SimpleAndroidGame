@@ -8,15 +8,23 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 public class Tile {
-    BitmapFont _bitmapFont;
-    Color _bgColor;
-    int _value;
-    int _tileSize = 200;
-    float _offset;
+    private BitmapFont _bitmapFont;
+    private Color _bgColor;
+    private int _value;
+    private int _tileSize = 200;
+    private float _offset;
+    private Vector2 _position;
+    private Vector2 _destination;
+    private float _speed;
 
-    public Tile(int value) {
+    public float getSpeed() {
+        return _speed;
+    }
+
+    public Tile(int value, Vector2 position) {
         this();
         this.setValue(value);
+        this._position = position;
     }
 
     public Tile() {
@@ -25,6 +33,7 @@ public class Tile {
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
         this._offset = this._tileSize / 2;
+        this._speed = 1f;
     }
 
     public void update() {}
@@ -85,5 +94,21 @@ public class Tile {
 
     public void dispose() {
         this._bitmapFont.dispose();
+    }
+
+    public Vector2 getPosition() {
+        return _position;
+    }
+
+    public void setPosition(Vector2 _position) {
+        this._position = _position;
+    }
+
+    public Vector2 getDestination() {
+        return _destination;
+    }
+
+    public void setDestination(Vector2 _destination) {
+        this._destination = _destination;
     }
 }

@@ -1,7 +1,9 @@
 package com.wesley.main.screen;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -13,13 +15,16 @@ import java.util.Vector;
 
 public class Board {
 
-    ShapeRenderer _shapeRenderer;
-    SpriteBatch _spriteBatch;
-    Tiles _tiles;
-    int _size;
-    int _firstX;
-    int _firstY;
-    boolean _playerTurn;
+    private ShapeRenderer _shapeRenderer;
+    private SpriteBatch _spriteBatch;
+    private Tiles _tiles;
+    private int _size;
+    private int _firstX;
+    private int _firstY;
+    private boolean _playerTurn;
+    private BitmapFont _font;
+    float deltaX=0;
+    float deltaY =0;
 
     public Board(int size) {
         this._tiles = new Tiles(size);
@@ -32,35 +37,43 @@ public class Board {
         this._tiles.createTile();
         this._tiles.createTile();
         this._playerTurn = true;
+
+        this._font = new BitmapFont();
+        this._font.setColor(Color.WHITE);
+        this._font.getData().setScale(5);
     }
 
     public void update() {
 
-        if (!this._tiles.isMoving()) {
+        if (this._tiles.getState() != Tiles.STATE.STATIC) {
+            this._tiles.update();
+        } else {
             if (this._playerTurn) {
-                if (Gdx.input.isTouched()) {
-                    float deltaX = Gdx.input.getDeltaX();
-                    float deltaY = Gdx.input.getDeltaY();
-                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                        if (deltaX > 0) {
-                            this._tiles.moveTiles(Tiles.DIRECTION.RIGHT);
-                        } else {
-                            this._tiles.moveTiles(Tiles.DIRECTION.LEFT);
-                        }
-                    } else {
-                        if (deltaY > 0) {
-                            this._tiles.moveTiles(Tiles.DIRECTION.DOWN);
-                        } else {
-                            this._tiles.moveTiles(Tiles.DIRECTION.UP);
-                        }
-                    }
-                }
+                this.handleInput();
             } else {
                 this._tiles.createTile();
                 this._playerTurn = true;
             }
-        } else {
-            this._tiles.update();
+        }
+    }
+
+    private void handleInput() {
+        if (Gdx.input.isTouched()) {
+            deltaX = Gdx.input.getDeltaX();
+            deltaY = Gdx.input.getDeltaY();
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0) {
+                    this._tiles.moveTiles(Tiles.DIRECTION.RIGHT);
+                } else {
+                    this._tiles.moveTiles(Tiles.DIRECTION.LEFT);
+                }
+            } else if (Math.abs(deltaX) < Math.abs(deltaY)) {
+                if (deltaY > 0) {
+                    this._tiles.moveTiles(Tiles.DIRECTION.DOWN);
+                } else {
+                    this._tiles.moveTiles(Tiles.DIRECTION.UP);
+                }
+            }
         }
     }
 
@@ -79,6 +92,10 @@ public class Board {
                 this.drawBGRect(x, y);
             }
         }
+        String text = deltaX + "," + deltaY;
+        this._spriteBatch.begin();
+        this._font.draw(this._spriteBatch, text,100,100);
+        this._spriteBatch.end();
     }
 
     private void drawBGRect(int x, int y) {
