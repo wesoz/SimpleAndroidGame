@@ -16,7 +16,6 @@ public class Board {
     ShapeRenderer _shapeRenderer;
     SpriteBatch _spriteBatch;
     Tiles _tiles;
-    boolean _isMoving;
     int _size;
     int _firstX;
     int _firstY;
@@ -24,7 +23,6 @@ public class Board {
 
     public Board(int size) {
         this._tiles = new Tiles(size);
-        this._isMoving = false;
         this._size = size * this._tiles.getSquareSize();
         this._firstX = (Gdx.app.getGraphics().getWidth() / 2) - (this._size / 2);
         this._firstY = (Gdx.app.getGraphics().getHeight() / 2) - (this._size / 2);
@@ -38,17 +36,31 @@ public class Board {
 
     public void update() {
 
-        if (!this._isMoving) {
+        if (!this._tiles.isMoving()) {
             if (this._playerTurn) {
                 if (Gdx.input.isTouched()) {
-
+                    float deltaX = Gdx.input.getDeltaX();
+                    float deltaY = Gdx.input.getDeltaY();
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        if (deltaX > 0) {
+                            this._tiles.moveTiles(Tiles.DIRECTION.RIGHT);
+                        } else {
+                            this._tiles.moveTiles(Tiles.DIRECTION.LEFT);
+                        }
+                    } else {
+                        if (deltaY > 0) {
+                            this._tiles.moveTiles(Tiles.DIRECTION.DOWN);
+                        } else {
+                            this._tiles.moveTiles(Tiles.DIRECTION.UP);
+                        }
+                    }
                 }
             } else {
                 this._tiles.createTile();
                 this._playerTurn = true;
             }
         } else {
-
+            this._tiles.update();
         }
     }
 
