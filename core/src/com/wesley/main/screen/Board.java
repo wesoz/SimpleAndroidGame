@@ -6,37 +6,34 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.wesley.main.gameobject.Tile;
+import com.wesley.main.gameobject.Tiles;
 
 import java.util.Random;
+import java.util.Vector;
 
 public class Board {
 
     ShapeRenderer _shapeRenderer;
     SpriteBatch _spriteBatch;
-    Texture _background;
-    Tile[][] _tiles;
+    Tiles _tiles;
     boolean _isMoving;
     int _size;
     int _firstX;
     int _firstY;
-    int _squareSize = 200;
-    int _squareBorderSize = 20;
-    int _innerSquareSize;
     boolean _playerTurn;
-    Random _random;
 
     public Board(int size) {
-        this._tiles = new Tile[size][size];
+        this._tiles = new Tiles(size);
         this._isMoving = false;
-        this._size = size * 200;
-        this._firstX = (Gdx.app.getGraphics().getWidth() / 2) - (400);
-        this._firstY = (Gdx.app.getGraphics().getHeight() / 2) - (400);
-        this._background = new Texture("board_4x4.bmp");
+        this._size = size * this._tiles.getSquareSize();
+        this._firstX = (Gdx.app.getGraphics().getWidth() / 2) - (this._size / 2);
+        this._firstY = (Gdx.app.getGraphics().getHeight() / 2) - (this._size / 2);
         this._spriteBatch = new SpriteBatch();
         this._shapeRenderer = new ShapeRenderer();
-        this._innerSquareSize = this._squareSize - this._squareBorderSize;
         this._playerTurn = false;
-        this._random = new Random();
+        this._tiles.createTile();
+        this._tiles.createTile();
+        this._playerTurn = true;
     }
 
     public void update() {
@@ -47,13 +44,7 @@ public class Board {
 
                 }
             } else {
-                int x;
-                int y;
-                do {
-                    x = _random.nextInt(this._tiles.length);
-                    y = _random.nextInt(this._tiles[0].length);
-                } while (this._tiles[x][y] != null);
-                this._tiles[x][y] = new Tile(2);
+                this._tiles.createTile();
                 this._playerTurn = true;
             }
         } else {
@@ -62,29 +53,37 @@ public class Board {
     }
 
     public void draw() {
-        this._spriteBatch.begin();
-        //this._spriteBatch.draw(this._background, this._firstX, this._firstY);
-
         this._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         this._shapeRenderer.setColor(1,1,1,1);
         this._shapeRenderer.rect(this._firstX, this._firstY, this._size, this._size);
         this._shapeRenderer.end();
-        this._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        for (int i = 0; i < this._tiles.length; i++){
-            for (int j = 0; j < this._tiles[i].length; j++) {
-                int x = this._firstX + (_squareSize * i);
-                int y = this._firstY + (_squareSize * j);
-                if (this._tiles[i][j] == null) {
-                    //this._shapeRenderer.setColor(0,0,0,1);
-                    //this._shapeRenderer.rect(x, y, _squareSize, _squareSize);
-                } else {
-                    this._tiles[i][j].drawSquare(this._shapeRenderer, new Vector2(x, y));
-                    this._tiles[i][j].writeValue(this._spriteBatch, new Vector2(x, y));
+        for (int i = 0; i < this._tiles.getSize(); i++){
+            for (int j = 0; j < this._tiles.getSize(); j++) {
+                int x = this._firstX + (this._tiles.getSquareSize() * i);
+                int y = this._firstY + (this._tiles.getSquareSize() * j);
+                if (this._tiles.hasTile(i, j)) {
+                    this._tiles.draw(this._shapeRenderer, this._spriteBatch, i, j, new Vector2(x, y));
                 }
+                this.drawBGRect(x, y);
             }
         }
+    }
+
+    private void drawBGRect(int x, int y) {
+        this._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        float borderWeight = 5f;
+        Vector2 bottomLeft = new Vector2(x, y);
+        Vector2 topLeft = new Vector2(x, y + this._tiles.getSquareSize());
+        Vector2 topRight = new Vector2(x + this._tiles.getSquareSize(), y + this._tiles.getSquareSize());
+        Vector2 bottomRight = new Vector2(x + this._tiles.getSquareSize(), y);
+
+        this._shapeRenderer.setColor(0,0,0,1);
+
+        this._shapeRenderer.rectLine(bottomLeft, topLeft, borderWeight);
+        this._shapeRenderer.rectLine(topLeft, topRight, borderWeight);
+        this._shapeRenderer.rectLine(topRight, bottomRight, borderWeight);
+        this._shapeRenderer.rectLine(bottomRight, bottomLeft, borderWeight);
         this._shapeRenderer.end();
-        this._spriteBatch.end();
     }
 
     public void dispose() {

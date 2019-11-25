@@ -77,12 +77,10 @@ public class Tile {
     }
 
     public void writeValue(SpriteBatch spriteBatch, Vector2 position) {
-        if (_value != 0) {
             this._bitmapFont.draw(spriteBatch,
                                   String.valueOf(_value),
                                 position.x + (_offset * 0.75f),
                                 position.y + (_offset * 1.25f ));
-        }
     }
 
     public void dispose() {
