@@ -30,6 +30,7 @@ public class Tiles {
     private int _size;
     private int _maxTiles;
     private int _tilesCount;
+    private Vector2 _offset;
     private Random _random;
 
     public Tiles(int size) {
@@ -68,12 +69,17 @@ public class Tiles {
         return this._tiles[x][y] != null;
     }
 
-    public void draw(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, int x, int y, Vector2 position) {
+    public void draw(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, int x, int y) {
+        Tile tile = this._tiles[x][y];
+        int xPos = (int)this._offset.x + (this.getSquareSize() * (int)tile.getPosition().x);
+        int yPos = (int)this._offset.y + (this.getSquareSize() * (int)tile.getPosition().y);
+
+        Vector2 position = new Vector2(xPos, yPos);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        this._tiles[x][y].drawSquare(shapeRenderer, position);
+        tile.drawSquare(shapeRenderer, position);
         shapeRenderer.end();
         spriteBatch.begin();
-        this._tiles[x][y].writeValue(spriteBatch, position);
+        tile.writeValue(spriteBatch, position);
         spriteBatch.end();
     }
 
@@ -107,12 +113,14 @@ public class Tiles {
             for (int i = 0; i < this._tilesToMove.size(); i++ ) {
                 Tile tile = this._tilesToMove.get(i);
                 if (tile.getPosition().y > tile.getDestination().y) {
-                    Vector2 position = tile.getPosition();
-                    position.y -= (int)tile.getSpeed();
+                    tile.move(0, -tile.getSpeed());
                     hasMoves = true;
                 }
             }
-            if (!hasMoves) this._state = STATE.STATIC;
+            if (!hasMoves) {
+                this._tilesToMove.clear();
+                this._state = STATE.STATIC;
+            }
         }
     }
 
@@ -141,5 +149,13 @@ public class Tiles {
         Tile element2 = this._tiles[x2][y2];
         this._tiles[x1][y1] = element2;
         this._tiles[x2][y2] = element1;
+    }
+
+    public Vector2 getOffset() {
+        return _offset;
+    }
+
+    public void setOffset(Vector2 offset) {
+        this._offset = offset;
     }
 }

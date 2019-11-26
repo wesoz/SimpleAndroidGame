@@ -58,7 +58,7 @@ public class Game extends ApplicationAdapter {
 		String text = FPS + " FPS";
 
 		this._batch.begin();
-		this._font.draw(this._batch,text,400,100);
+		this._font.draw(this._batch,text,500,100);
 		this._batch.end();
 	}
 

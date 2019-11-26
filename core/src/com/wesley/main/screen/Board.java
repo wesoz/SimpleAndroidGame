@@ -31,6 +31,7 @@ public class Board {
         this._size = size * this._tiles.getSquareSize();
         this._firstX = (Gdx.app.getGraphics().getWidth() / 2) - (this._size / 2);
         this._firstY = (Gdx.app.getGraphics().getHeight() / 2) - (this._size / 2);
+        this._tiles.setOffset(new Vector2(this._firstX, this._firstY));
         this._spriteBatch = new SpriteBatch();
         this._shapeRenderer = new ShapeRenderer();
         this._playerTurn = false;
@@ -87,7 +88,7 @@ public class Board {
                 int x = this._firstX + (this._tiles.getSquareSize() * i);
                 int y = this._firstY + (this._tiles.getSquareSize() * j);
                 if (this._tiles.hasTile(i, j)) {
-                    this._tiles.draw(this._shapeRenderer, this._spriteBatch, i, j, new Vector2(x, y));
+                    this._tiles.draw(this._shapeRenderer, this._spriteBatch, i, j);
                 }
                 this.drawBGRect(x, y);
             }

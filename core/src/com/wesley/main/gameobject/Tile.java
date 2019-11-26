@@ -24,7 +24,13 @@ public class Tile {
     public Tile(int value, Vector2 position) {
         this();
         this.setValue(value);
-        this._position = position;
+        this.setPosition(position);
+    }
+
+    public void move(float deltaX, float deltaY) {
+        float x = this._position.x + deltaX;
+        float y = this._position.y + deltaY;
+        this._position.set(new Vector2(x, y));
     }
 
     public Tile() {
@@ -33,7 +39,7 @@ public class Tile {
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
         this._offset = this._tileSize / 2;
-        this._speed = 1f;
+        this._speed = 0.1f;
     }
 
     public void update() {}
@@ -100,15 +106,15 @@ public class Tile {
         return _position;
     }
 
-    public void setPosition(Vector2 _position) {
-        this._position = _position;
+    public void setPosition(Vector2 position) {
+        this._position = position;
     }
 
     public Vector2 getDestination() {
         return _destination;
     }
 
-    public void setDestination(Vector2 _destination) {
-        this._destination = _destination;
+    public void setDestination(Vector2 destination) {
+        this._destination = destination;
     }
 }
