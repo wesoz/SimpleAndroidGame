@@ -39,7 +39,7 @@ public class Tile {
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
         this._offset = this._tileSize / 2;
-        this._speed = 0.1f;
+        this._speed = 50f;
     }
 
     public void update() {}

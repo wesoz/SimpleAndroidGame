@@ -60,7 +60,7 @@ public class Tiles {
             x = _random.nextInt(this._tiles.length);
             y = _random.nextInt(this._tiles[0].length);
         } while (this._tiles[x][y] != null);
-        this._tiles[x][y] = new Tile(2, new Vector2(x, y));
+        this._tiles[x][y] = new Tile(2, this.getInBoardPosition(x, y));
         this._tilesCount++;
         return true;
     }
@@ -69,17 +69,20 @@ public class Tiles {
         return this._tiles[x][y] != null;
     }
 
+    private Vector2 getInBoardPosition (int x, int y) {
+        int xPos = (int)this._offset.x + (this.getSquareSize() * x);
+        int yPos = (int)this._offset.y + (this.getSquareSize() * y);
+        return new Vector2(xPos, yPos);
+    }
+
     public void draw(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, int x, int y) {
         Tile tile = this._tiles[x][y];
-        int xPos = (int)this._offset.x + (this.getSquareSize() * (int)tile.getPosition().x);
-        int yPos = (int)this._offset.y + (this.getSquareSize() * (int)tile.getPosition().y);
-
-        Vector2 position = new Vector2(xPos, yPos);
+        
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        tile.drawSquare(shapeRenderer, position);
+        tile.drawSquare(shapeRenderer, tile.getPosition());
         shapeRenderer.end();
         spriteBatch.begin();
-        tile.writeValue(spriteBatch, position);
+        tile.writeValue(spriteBatch, tile.getPosition());
         spriteBatch.end();
     }
 
@@ -97,29 +100,109 @@ public class Tiles {
         if (this._state == STATE.SET_DESTINATION) {
             switch (this._direction) {
                 case UP:
+                    this.setDestinationUp();
                     break;
                 case DOWN:
                     this.setDestinationDown();
                     break;
                 case RIGHT:
+                    this.setDestinationRight();
                     break;
                 case LEFT:
+                    this.setDestinationLeft();
                     break;
             }
             this._state = STATE.MOVE;
         }
         else if (this._state == STATE.MOVE) {
-            boolean hasMoves = false;
-            for (int i = 0; i < this._tilesToMove.size(); i++ ) {
-                Tile tile = this._tilesToMove.get(i);
-                if (tile.getPosition().y > tile.getDestination().y) {
-                    tile.move(0, -tile.getSpeed());
-                    hasMoves = true;
+            this.moveTiles();
+        }
+    }
+
+    private void moveTiles() {
+        boolean hasMoves = false;
+        for (int i = 0; i < this._tilesToMove.size(); i++ ) {
+            Tile tile = this._tilesToMove.get(i);
+            float deltaX = 0;
+            float deltaY = 0;
+            if (tile.getPosition().y > tile.getDestination().y) {
+                deltaY =-tile.getSpeed();
+                hasMoves = true;
+            } else if (tile.getPosition().y < tile.getDestination().y) {
+                deltaY = tile.getSpeed();
+                hasMoves = true;
+            } else if (tile.getPosition().x < tile.getDestination().x) {
+                deltaX = tile.getSpeed();
+                hasMoves = true;
+            } else if (tile.getPosition().x > tile.getDestination().x) {
+                deltaX = -tile.getSpeed();
+                hasMoves = true;
+            }
+
+            tile.move(deltaX, deltaY);
+        }
+        if (!hasMoves) {
+            this._tilesToMove.clear();
+            this._state = STATE.STATIC;
+        }
+    }
+
+    private void setDestinationLeft() {
+        for (int y = 0; y < this._size; y++) {
+            Vector2 destination = null;
+            for (int x = 0; x < this._size; x++) {
+                if (this._tiles[x][y] == null) {
+                    if (destination == null) {
+                        destination = new Vector2(x, y);
+                    }
+                } else {
+                    if (destination != null) {
+                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
+                        this._tilesToMove.add(this._tiles[x][y]);
+                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
+                        destination.set(destination.x + 1, destination.y);
+                    }
                 }
             }
-            if (!hasMoves) {
-                this._tilesToMove.clear();
-                this._state = STATE.STATIC;
+        }
+    }
+
+    private void setDestinationRight() {
+        for (int y = 0; y < this._size; y++) {
+            Vector2 destination = null;
+            for (int x = this._size - 1; x >= 0; x--) {
+                if (this._tiles[x][y] == null) {
+                    if (destination == null) {
+                        destination = new Vector2(x, y);
+                    }
+                } else {
+                    if (destination != null) {
+                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
+                        this._tilesToMove.add(this._tiles[x][y]);
+                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
+                        destination.set(destination.x - 1, destination.y);
+                    }
+                }
+            }
+        }
+    }
+
+    private void setDestinationUp() {
+        for (int x = 0; x < this._size; x++) {
+            Vector2 destination = null;
+            for (int y = this._size - 1; y >= 0; y--) {
+                if (this._tiles[x][y] == null) {
+                    if (destination == null) {
+                        destination = new Vector2(x, y);
+                    }
+                } else {
+                    if (destination != null) {
+                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
+                        this._tilesToMove.add(this._tiles[x][y]);
+                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
+                        destination.set(destination.x, destination.y - 1);
+                    }
+                }
             }
         }
     }
@@ -134,10 +217,10 @@ public class Tiles {
                     }
                 } else {
                     if (destination != null) {
-                        this._tiles[x][y].setDestination(destination);
+                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
                         this._tilesToMove.add(this._tiles[x][y]);
                         this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
-                        break;
+                        destination.set(destination.x, destination.y + 1);
                     }
                 }
             }
