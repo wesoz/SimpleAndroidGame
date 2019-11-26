@@ -16,6 +16,9 @@ public class Tile {
     private Vector2 _position;
     private Vector2 _destination;
     private float _speed;
+    private boolean _isMoving;
+    private int _x;
+    private int _y;
 
     public float getSpeed() {
         return _speed;
@@ -39,12 +42,17 @@ public class Tile {
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
         this._offset = this._tileSize / 2;
-        this._speed = 50f;
+        this._speed = 40f;
+        this._isMoving = false;
     }
 
-    public void update() {}
+    public void doubleValue() { this.setValue(this._value * 2); }
 
-    public boolean match(Tile tile) { return this._value == tile._value; }
+    public boolean match(Tile tile) {
+        if (tile == null) return false;
+
+        return this._value == tile._value;
+    }
 
     public void setValue(int value) {
         this._value = value;
@@ -116,5 +124,34 @@ public class Tile {
 
     public void setDestination(Vector2 destination) {
         this._destination = destination;
+    }
+
+    public boolean isMoving() {
+        return _isMoving;
+    }
+
+    public void setIsMoving(boolean isMoving) {
+        this._isMoving = isMoving;
+    }
+
+    public int getX() {
+        return _x;
+    }
+
+    public void setX(int x) {
+        this._x = x;
+    }
+
+    public int getY() {
+        return _y;
+    }
+
+    public void setY(int y) {
+        this._y = y;
+    }
+
+    public void set(int x, int y) {
+        this._x = x;
+        this._y = y;
     }
 }

@@ -48,6 +48,7 @@ public class Board {
 
         if (this._tiles.getState() != Tiles.STATE.STATIC) {
             this._tiles.update();
+            this._playerTurn = false;
         } else {
             if (this._playerTurn) {
                 this.handleInput();
