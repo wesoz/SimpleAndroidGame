@@ -42,7 +42,7 @@ public class Game extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(0, 0, 1, 0);
+		Gdx.gl.glClearColor(0.4f, 0.6f, 0.8f, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		this._board.update();

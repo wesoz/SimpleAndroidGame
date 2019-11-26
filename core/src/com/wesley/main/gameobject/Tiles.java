@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Random;
 
 public class Tiles {
-
     public enum DIRECTION {
         UP,
         DOWN,
@@ -19,7 +18,6 @@ public class Tiles {
     public enum STATE {
         MOVE,
         SET_DESTINATION,
-        FIX_BOARD,
         STATIC
     }
 
@@ -27,7 +25,7 @@ public class Tiles {
     private List<Tile> _tilesToMove;
     private DIRECTION _direction;
     private STATE _state;
-    private int _squareSize;
+    private int _tileSize;
     private int _size;
     private int _maxTiles;
     private int _tilesCount;
@@ -37,7 +35,7 @@ public class Tiles {
 
     public Tiles(int size) {
         this._size = size;
-        this._squareSize = 200;
+        this._tileSize = 250;
         this._tiles = new Tile[size][size];
         this._maxTiles = this._size * this._size;
         this._tilesCount = 0;
@@ -51,8 +49,8 @@ public class Tiles {
         return _size;
     }
 
-    public int getSquareSize() {
-        return _squareSize;
+    public int getTileSize() {
+        return _tileSize;
     }
 
     public boolean createTile() {
@@ -63,7 +61,7 @@ public class Tiles {
             x = _random.nextInt(this._tiles.length);
             y = _random.nextInt(this._tiles[0].length);
         } while (this._tiles[x][y] != null);
-        this.setTile(new Tile(2, this.getInBoardPosition(x, y)), x, y);
+        this.setTile(new Tile(this._tileSize, 2, this.getInBoardPosition(x, y)), x, y);
         this._tilesCount++;
         return true;
     }
@@ -73,8 +71,8 @@ public class Tiles {
     }
 
     private Vector2 getInBoardPosition (int x, int y) {
-        int xPos = (int)this._offset.x + (this.getSquareSize() * x);
-        int yPos = (int)this._offset.y + (this.getSquareSize() * y);
+        int xPos = (int)this._offset.x + (this.getTileSize() * x);
+        int yPos = (int)this._offset.y + (this.getTileSize() * y);
         return new Vector2(xPos, yPos);
     }
 
@@ -135,29 +133,29 @@ public class Tiles {
             int x = tile.getX();
             int y = tile.getY();
             if (tile.getPosition().y > tile.getDestination().y) { //down
-                deltaY =-tile.getSpeed();
+                deltaY = -this.getDelta(tile.getPosition().y, tile.getDestination().y, -tile.getSpeed());
                 hasMoves = true;
             } else if (tile.getPosition().y < tile.getDestination().y) { //up
-                deltaY = tile.getSpeed();
+                deltaY = this.getDelta(tile.getPosition().y, tile.getDestination().y, -tile.getSpeed());
                 hasMoves = true;
             } else if (tile.getPosition().x < tile.getDestination().x) { //right
-                deltaX = tile.getSpeed();
+                deltaX = this.getDelta(tile.getPosition().x, tile.getDestination().x, tile.getSpeed());
                 hasMoves = true;
             } else if (tile.getPosition().x > tile.getDestination().x) { //left
-                deltaX = -tile.getSpeed();
+                deltaX = -this.getDelta(tile.getPosition().x, tile.getDestination().x, tile.getSpeed());
                 hasMoves = true;
             }
 
             tile.move(deltaX, deltaY);
-            if (deltaX == 0 && deltaY == 0) {
-                tile.setIsMoving(false);
-            }
-            else tile.setIsMoving(true);
         }
         if (!hasMoves) {
             this._tilesToMove.clear();
             this.checkMatches();
         }
+    }
+
+    private float getDelta(float position, float destination, float speed) {
+        return Math.min(Math.abs(position - destination), Math.abs(speed));
     }
 
     private void checkMatches() {
@@ -346,5 +344,16 @@ public class Tiles {
     private void setTile(Tile tile, int x, int y) {
         if (tile != null) tile.set(x, y);
         this._tiles[x][y] = tile;
+    }
+
+
+    public void dispose() {
+        for (int i = 0; i < this.getSize(); i++){
+            for (int j = 0; j < this.getSize(); j++) {
+                if (this._tiles[i][j] != null) {
+                    this._tiles[i][j].dispose();
+                }
+            }
+        }
     }
 }

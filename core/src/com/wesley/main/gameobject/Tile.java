@@ -2,7 +2,6 @@ package com.wesley.main.gameobject;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -11,12 +10,11 @@ public class Tile {
     private BitmapFont _bitmapFont;
     private Color _bgColor;
     private int _value;
-    private int _tileSize = 200;
+    private int _tileSize;
     private float _offset;
     private Vector2 _position;
     private Vector2 _destination;
     private float _speed;
-    private boolean _isMoving;
     private int _x;
     private int _y;
 
@@ -24,8 +22,10 @@ public class Tile {
         return _speed;
     }
 
-    public Tile(int value, Vector2 position) {
+    public Tile(int tileSize, int value, Vector2 position) {
         this();
+        this._tileSize = tileSize;
+        this._offset = this._tileSize / 2;
         this.setValue(value);
         this.setPosition(position);
     }
@@ -41,9 +41,7 @@ public class Tile {
         this._bitmapFont.setColor(Color.BLACK);
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
-        this._offset = this._tileSize / 2;
-        this._speed = 40f;
-        this._isMoving = false;
+        this._speed = 50f;
     }
 
     public void doubleValue() { this.setValue(this._value * 2); }
@@ -126,28 +124,12 @@ public class Tile {
         this._destination = destination;
     }
 
-    public boolean isMoving() {
-        return _isMoving;
-    }
-
-    public void setIsMoving(boolean isMoving) {
-        this._isMoving = isMoving;
-    }
-
     public int getX() {
         return _x;
     }
 
-    public void setX(int x) {
-        this._x = x;
-    }
-
     public int getY() {
         return _y;
-    }
-
-    public void setY(int y) {
-        this._y = y;
     }
 
     public void set(int x, int y) {
