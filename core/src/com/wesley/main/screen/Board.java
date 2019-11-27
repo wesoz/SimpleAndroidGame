@@ -12,28 +12,34 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.wesley.main.gameobject.Tiles;
+
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Board extends Screen {
 
     private Tiles _tiles;
+    private ArrayList<Tiles> _lastMoves;
     private int _gridSize;
     private int _size;
     private int _firstX;
     private int _firstY;
     private boolean _playerTurn;
     private BitmapFont _font;
-    float deltaX = 0;
-    float deltaY = 0;
+    TextButton _btnUndo;
     Stage _stage;
-    Button _btnRestart;
     Table _restartDialogTable;
+    Table _gameButtonsTable;
 
     public Board(int size) {
         super();
@@ -42,18 +48,43 @@ public class Board extends Screen {
 
         this._stage = new Stage();
         Gdx.input.setInputProcessor(_stage);
+        buildGameButtons();
+
+    }
+
+    private void buildGameButtons() {
+        this._gameButtonsTable = new Table();
         Texture upTexture = new Texture("buttons/restart.png");
-        Drawable up = new TextureRegionDrawable(new TextureRegion(upTexture));
-        this._btnRestart = new Button(up);
-        this._btnRestart.setPosition(500, (Gdx.graphics.getHeight() - upTexture.getHeight()) - 100);
-        this._stage.addActor(this._btnRestart);
-        this._btnRestart.addListener(new ChangeListener() {
+        Drawable upDrawable = new TextureRegionDrawable(new TextureRegion(upTexture));
+        Button btnRestart;
+        btnRestart = new Button(upDrawable);
+        btnRestart.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 Board.this.buildRestartDialog();
             }
         });
 
+        upTexture = new Texture("buttons/undo.png");
+        upDrawable = new TextureRegionDrawable(new TextureRegion(upTexture));
+        BitmapFont font = new BitmapFont();
+        font.getData().setScale(4f);
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.font = font;
+        textButtonStyle.up = upDrawable;
+        this._btnUndo = new TextButton("", textButtonStyle);
+        this._btnUndo.getLabel().setAlignment(Align.topRight);
+        this._btnUndo.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Board.this.popMove();
+            }
+        });
+
+        this._gameButtonsTable.add(this._btnUndo).pad(100);
+        this._gameButtonsTable.add(btnRestart);
+        this._gameButtonsTable.setPosition(500, (Gdx.graphics.getHeight() - upTexture.getHeight()) - 100);
+        this._stage.addActor(this._gameButtonsTable);
     }
 
     private void buildRestartDialog() {
@@ -107,6 +138,7 @@ public class Board extends Screen {
         this._font = new BitmapFont();
         this._font.setColor(Color.WHITE);
         this._font.getData().setScale(5);
+        this._lastMoves = new ArrayList<>();
     }
 
     public Screen update() {
@@ -139,10 +171,13 @@ public class Board extends Screen {
 
     private void handleInput() {
         if (Gdx.input.isTouched()) {
-            deltaX = Gdx.input.getDeltaX();
-            deltaY = Gdx.input.getDeltaY();
+            float deltaX = Gdx.input.getDeltaX();
+            float deltaY = Gdx.input.getDeltaY();
             if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30)
                 return;
+
+            this.addMove();
+
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (deltaX > 0) {
                     this._tiles.moveTiles(Tiles.DIRECTION.RIGHT);
@@ -159,42 +194,62 @@ public class Board extends Screen {
         }
     }
 
+    private void addMove() {
+        if (this._lastMoves.size() == 5)
+            this._lastMoves.remove(0);
+        this._lastMoves.add(this._tiles.clone());
+    }
+
+    private void popMove() {
+        if (this._lastMoves.size() > 0) {
+            Tiles tiles = this._lastMoves.get(this._lastMoves.size() - 1);
+            this._tiles = tiles;
+            this._lastMoves.remove(tiles);
+        }
+    }
+
     public void draw() {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         super._shapeRenderer.setColor(0.949f,0.9686f,0.9882f,1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
-        for (int i = 0; i < this._tiles.getSize(); i++){
-            for (int j = 0; j < this._tiles.getSize(); j++) {
-                int x = this._firstX + (this._tiles.getTileSize() * i);
-                int y = this._firstY + (this._tiles.getTileSize() * j);
-                if (this._tiles.hasTile(i, j)) {
-                    this._tiles.draw(super._shapeRenderer, super._spriteBatch, i, j);
+        for (int x = 0; x < this._tiles.getSize(); x++){
+            for (int y = 0; y < this._tiles.getSize(); y++) {
+                int xPos = this._firstX + (this._tiles.getTileSize() * x);
+                int yPos = this._firstY + (this._tiles.getTileSize() * y);
+                if (this._tiles.hasTile(x, y)) {
+                    this._tiles.draw(super._shapeRenderer, super._spriteBatch, x, y);
                 }
-                this.drawBGRect(x, y);
+                this.drawBGRect(xPos, yPos);
             }
         }
-        String text = deltaX + "," + deltaY;
-        super._spriteBatch.begin();
-        this._font.draw(super._spriteBatch, text,100,100);
-        this._btnRestart.draw(super._spriteBatch, 1);
-        super._spriteBatch.end();
+        this.drawGameButtons();
         this.drawRestartDialog();
+    }
+
+    private void drawGameButtons() {
+        if (_gameButtonsTable != null) {
+            super._spriteBatch.begin();
+            this._btnUndo.setText(String.valueOf(this._lastMoves.size()));
+            this._gameButtonsTable.draw(super._spriteBatch, 1);
+            super._spriteBatch.end();
+        }
     }
 
     private void drawRestartDialog() {
 
-        if (this._restartDialogTable == null) return;
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        super._shapeRenderer.setColor(1f, 0.7f, 0.2f, 0.8f);
-        super._shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        super._shapeRenderer.end();
-        super._spriteBatch.begin();
-        this._restartDialogTable.draw(super._spriteBatch, 1);
-        super._spriteBatch.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+        if (this._restartDialogTable != null) {
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+            super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            super._shapeRenderer.setColor(1f, 0.7f, 0.2f, 0.8f);
+            super._shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            super._shapeRenderer.end();
+            super._spriteBatch.begin();
+            this._restartDialogTable.draw(super._spriteBatch, 1);
+            super._spriteBatch.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
     }
 
     private void drawBGRect(int x, int y) {

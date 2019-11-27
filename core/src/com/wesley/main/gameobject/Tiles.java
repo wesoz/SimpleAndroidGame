@@ -46,6 +46,21 @@ public class Tiles {
         this._isFirstExecution = false;
     }
 
+    public Tiles(Tile[][] tiles, List<Tile> tilesToMove, DIRECTION direction, STATE state, int tileSize,
+                int size, int maxTiles, int tilesCount, Vector2 offset, Random random, boolean isFirstExecution) {
+        this._tiles = tiles;
+        this._tilesToMove = tilesToMove;
+        this._direction = direction;
+        this._state = state;
+        this._tileSize = tileSize;
+        this._size = size;
+        this._maxTiles = maxTiles;
+        this._tilesCount = tilesCount;
+        this._offset = offset;
+        this._random = random;
+        this._isFirstExecution = isFirstExecution;
+    }
+
     public int getSize() {
         return _size;
     }
@@ -347,7 +362,6 @@ public class Tiles {
         this._tiles[x][y] = tile;
     }
 
-
     public void dispose() {
         for (int i = 0; i < this.getSize(); i++){
             for (int j = 0; j < this.getSize(); j++) {
@@ -356,5 +370,22 @@ public class Tiles {
                 }
             }
         }
+    }
+
+    public Tiles clone() {
+        Tile[][] tiles = new Tile[this._size][this._size];
+
+        for (int x = 0; x < this.getSize(); x++){
+            for (int y = 0; y < this.getSize(); y++) {
+                if (this._tiles[x][y] != null) {
+                    tiles[x][y] = this._tiles[x][y].clone();
+                } else
+                    tiles[x][y] = null;
+            }
+        }
+
+        return new Tiles(tiles, this._tilesToMove, this._direction, this._state,
+                         this._tileSize, this._size, this._maxTiles, this._tilesCount,
+                         this._offset, this._random, this._isFirstExecution);
     }
 }
