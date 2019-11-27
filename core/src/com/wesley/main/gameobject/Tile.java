@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 
 public class Tile {
@@ -31,7 +30,7 @@ public class Tile {
         this.setPosition(position);
     }
 
-    public Tile(BitmapFont bitmapFont, Color bgColor, int value, int tileSize, float offset,
+    public Tile(int value, int tileSize, float offset,
                 Vector2 position, Vector2 destination, float speed, int x, int y) {
         this(tileSize, value, position);
         this._offset = offset;
@@ -152,7 +151,7 @@ public class Tile {
         Vector2 position = new Vector2(this._position);
         Vector2 destination = this._destination == null ? null : new Vector2(this._destination);
 
-        return new Tile(this._bitmapFont, this._bgColor, this._value, this._tileSize, this._offset,
-                        position, destination, this._speed, this._x, this._y);
+        return new Tile(this._value, this._tileSize, this._offset, position, destination,
+                        this._speed, this._x, this._y);
     }
 }
