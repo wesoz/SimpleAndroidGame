@@ -2,6 +2,9 @@ package com.wesley.main;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -9,12 +12,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
-import com.wesley.main.gameobject.Tile;
 import com.wesley.main.screen.Board;
+import com.wesley.main.screen.MainMenu;
+import com.wesley.main.screen.Screen;
 
-import java.util.Date;
-
-public class Game extends ApplicationAdapter {
+public class Game extends ApplicationAdapter{
 	private SpriteBatch _batch;
 	private ShapeRenderer _renderer;
 	private Texture _img;
@@ -25,9 +27,11 @@ public class Game extends ApplicationAdapter {
 	private Board _board;
 	long _startTime;
 	long _frames = 0;
+	Screen _currentScreen;
 	
 	@Override
 	public void create () {
+		Gdx.input.setCatchKey(Input.Keys.BACK, true);
 		this._renderer = new ShapeRenderer();
 		this._batch = new SpriteBatch();
 		this._img = new Texture("badlogic.jpg");
@@ -35,8 +39,9 @@ public class Game extends ApplicationAdapter {
 		this._font = new BitmapFont();
 		this._font.setColor(Color.WHITE);
 		this._font.getData().setScale(5);
-		this._board = new Board(4);
+		//this._board = new Board(4);
 		this._startTime = System.currentTimeMillis();
+		this._currentScreen = new MainMenu();
 
 	}
 
@@ -45,8 +50,13 @@ public class Game extends ApplicationAdapter {
 		Gdx.gl.glClearColor(0.4f, 0.6f, 0.8f, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		this._board.update();
-		this._board.draw();
+		Screen nextScreen = this._currentScreen.update();
+		this._currentScreen.draw();
+		if (nextScreen != this._currentScreen)
+		{
+			this._currentScreen.dispose();
+			this._currentScreen = nextScreen;
+		}
 		this.getFrameRate();
 	}
 
@@ -80,6 +90,6 @@ public class Game extends ApplicationAdapter {
 		this._batch.dispose();
 		this._img.dispose();
 		this._font.dispose();
-		this._board.dispose();
+		this._currentScreen.dispose();
 	}
 }

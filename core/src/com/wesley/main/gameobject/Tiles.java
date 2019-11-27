@@ -1,5 +1,6 @@
 package com.wesley.main.gameobject;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -35,7 +36,7 @@ public class Tiles {
 
     public Tiles(int size) {
         this._size = size;
-        this._tileSize = 250;
+        this._tileSize = (Gdx.graphics.getWidth() - 80) / size;
         this._tiles = new Tile[size][size];
         this._maxTiles = this._size * this._size;
         this._tilesCount = 0;
