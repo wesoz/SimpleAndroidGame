@@ -137,6 +137,7 @@ public class Tiles {
                 this.setDestinationLeft();
                 break;
         }
+
         this._state = STATE.MOVE;
     }
 
@@ -386,6 +387,6 @@ public class Tiles {
 
         return new Tiles(tiles, this._tilesToMove, this._direction, this._state,
                          this._tileSize, this._size, this._maxTiles, this._tilesCount,
-                         this._offset, this._random, this._isFirstExecution);
+                         new Vector2(this._offset), new Random(), this._isFirstExecution);
     }
 }
