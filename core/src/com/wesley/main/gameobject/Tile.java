@@ -62,6 +62,8 @@ public class Tile {
         return this._value == tile._value;
     }
 
+    public int getValue() { return this._value; }
+
     public void setValue(int value) {
         this._value = value;
         switch (this._value) {
@@ -146,6 +148,10 @@ public class Tile {
         this._x = x;
         this._y = y;
     }
+
+    public int getTileSize() { return this._tileSize; }
+
+    public float getOffset() { return this._offset; }
 
     public Tile clone() {
         Vector2 position = new Vector2(this._position);
