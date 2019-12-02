@@ -5,6 +5,8 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.math.Vector2;
 import com.wesley.main.gameobject.Tile;
 import com.wesley.main.gameobject.Tiles;
+import com.wesley.main.screen.Board;
+
 import java.util.ArrayList;
 
 public class DataManager {
@@ -24,6 +26,7 @@ public class DataManager {
         this.saveLastMoves(dataModel.getLastMoves(), "lastMoves");
         this._preferences.putInteger("size", dataModel.getSize());
         this._preferences.putBoolean("isPlayerTurn", dataModel.isPlayerTurn());
+        this._preferences.flush();
     }
 
     private void saveLastMoves(ArrayList<Tiles> lastMoves, String objectName) {
@@ -126,9 +129,9 @@ public class DataManager {
 
     private ArrayList<Tiles> loadLastMoves(String objectName) {
         ArrayList<Tiles> lastMoves = new ArrayList<>();
-        int i = 0;
-        Tiles tiles = null;
-        while ((tiles =  this.loadTiles(objectName + "_" + i)) != null) {
+        for (int i = 0; i < Board.LAST_MOVES_LIMIT;i++) {
+            Tiles tiles = this.loadTiles(objectName + "_" + i);
+            if (tiles == null) break;
             lastMoves.add(tiles);
         }
         return lastMoves;

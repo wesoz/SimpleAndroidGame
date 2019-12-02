@@ -14,6 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.wesley.main.data.DataManager;
+import com.wesley.main.data.DataModel;
 
 public class MainMenu extends Screen {
 
@@ -51,13 +53,25 @@ public class MainMenu extends Screen {
         button.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                MainMenu.this._screen = new Board(size);
+                MainMenu.this.loadBoard(size);
             }
         });
         this._table.add(label).width(250).height(250);
         this._table.add(button);
         this._table.setFillParent(true);
         this._stage.addActor(this._table);
+    }
+
+    private void loadBoard(int size) {
+        Board board;
+        DataModel dataModel = new DataManager(Board.getSaveFileID(size)).loadGame();
+        if (dataModel != null)
+        {
+            board = new Board(dataModel.getTiles(), dataModel.getLastMoves(), dataModel.getSize(), dataModel.isPlayerTurn());
+        } else {
+            board = new Board(size);
+        }
+        MainMenu.this._screen = board;
     }
 
     @Override

@@ -19,33 +19,73 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.wesley.main.data.DataManager;
+import com.wesley.main.data.DataModel;
 import com.wesley.main.gameobject.Tiles;
 import java.util.ArrayList;
 
 public class Board extends Screen {
 
+    public static final int LAST_MOVES_LIMIT = 5;
     private Tiles _tiles;
     private ArrayList<Tiles> _lastMoves;
     private int _gridSize;
     private int _size;
     private int _firstX;
     private int _firstY;
-    private boolean _playerTurn;
+    private boolean _isPlayerTurn;
     private BitmapFont _font;
     TextButton _btnUndo;
     Stage _stage;
     Table _restartDialogTable;
     Table _gameButtonsTable;
+    DataManager _dataManager;
+
+    private Board() {
+        super();
+        this._isPlayerTurn = true;
+        this._restartDialogTable = null;
+        this._font = new BitmapFont();
+        this._font.setColor(Color.WHITE);
+        this._font.getData().setScale(5);
+        this._lastMoves = new ArrayList<>();
+    }
+
+    public Board(Tiles tiles, ArrayList<Tiles> lastMoves, int size, boolean isPlayerTurn) {
+        this();
+        this.initialize(size);
+        this._tiles = tiles;
+        this._lastMoves = lastMoves;
+        this._isPlayerTurn = isPlayerTurn;
+    }
 
     public Board(int size) {
-        super();
-        this._size = size;
+        this();
+        this.initialize(size);
         this.startGame();
+    }
 
+    private void initialize(int size) {
+        this._size = size;
+        this._tiles = new Tiles(this._size);
+        this.calculateBoundaries();
+        _dataManager = new DataManager(Board.getSaveFileID(size));
+        this.setupScreenControls();
+    }
+
+    private void setupScreenControls() {
         this._stage = new Stage();
         Gdx.input.setInputProcessor(_stage);
         buildGameButtons();
+    }
 
+    public static String getSaveFileID(int boardSize) {
+        return boardSize + "x" + boardSize;
+    }
+
+    private void saveState() {
+        DataModel dataModel = new DataModel(this._tiles, this._lastMoves, this._size, this._isPlayerTurn);
+        this._dataManager.saveGame(dataModel);
     }
 
     private void buildGameButtons() {
@@ -111,7 +151,7 @@ public class Board extends Screen {
         btnYes.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Board.this.startGame();
+                Board.this.restartGame();
             }
         });
         this._restartDialogTable.add(btnYes).width(200);
@@ -121,20 +161,22 @@ public class Board extends Screen {
     }
 
     private void startGame() {
-        this._tiles = new Tiles(this._size);
+        this._tiles.createTile();
+        this._tiles.createTile();
+    }
+
+    private void restartGame() {
+        this.initialize(this._size);
+        this._restartDialogTable = null;
+        this.startGame();
+        this.saveState();
+    }
+
+    private void calculateBoundaries() {
         this._gridSize = this._size * this._tiles.getTileSize();
         this._firstX = (Gdx.app.getGraphics().getWidth() / 2) - (this._gridSize / 2);
         this._firstY = (Gdx.app.getGraphics().getHeight() / 2) - (this._gridSize / 2);
         this._tiles.setOffset(new Vector2(this._firstX, this._firstY));
-        this._playerTurn = false;
-        this._tiles.createTile();
-        this._tiles.createTile();
-        this._playerTurn = true;
-        this._restartDialogTable = null;
-        this._font = new BitmapFont();
-        this._font.setColor(Color.WHITE);
-        this._font.getData().setScale(5);
-        this._lastMoves = new ArrayList<>();
     }
 
     public Screen update() {
@@ -152,13 +194,14 @@ public class Board extends Screen {
 
         if (this._tiles.getState() != Tiles.STATE.STATIC) {
             this._tiles.update();
-            this._playerTurn = false;
+            this._isPlayerTurn = false;
         } else {
-            if (this._playerTurn) {
+            if (this._isPlayerTurn) {
                 this.handleInput();
             } else {
                 this._tiles.createTile();
-                this._playerTurn = true;
+                this._isPlayerTurn = true;
+                this.saveState();
             }
         }
 
@@ -191,7 +234,7 @@ public class Board extends Screen {
     }
 
     private void addMove() {
-        if (this._lastMoves.size() == 5)
+        if (this._lastMoves.size() == Board.LAST_MOVES_LIMIT)
             this._lastMoves.remove(0);
         this._lastMoves.add(this._tiles.clone());
     }
