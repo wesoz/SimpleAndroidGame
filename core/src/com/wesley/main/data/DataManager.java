@@ -165,7 +165,7 @@ public class DataManager {
                              this._preferences.getFloat(objectName + "offset.y", 0));
         isFirstExecution = this._preferences.getBoolean(objectName + "isFirstExecution", false);
 
-        return new Tiles(tiles, new ArrayList<Tile>(), Tiles.DIRECTION.DOWN, Tiles.STATE.STATIC,
+        return new Tiles(tiles, Tiles.DIRECTION.DOWN, Tiles.STATE.STATIC,
                          tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
     }
 

@@ -23,7 +23,6 @@ public class Tiles {
     }
 
     private Tile[][] _tiles;
-    private List<Tile> _tilesToMove;
     private DIRECTION _direction;
     private STATE _state;
     private int _tileSize;
@@ -42,14 +41,12 @@ public class Tiles {
         this._tilesCount = 0;
         this._state = STATE.STATIC;
         this._random = new Random();
-        this._tilesToMove = new ArrayList<>();
         this._isFirstExecution = false;
     }
 
-    public Tiles(Tile[][] tiles, List<Tile> tilesToMove, DIRECTION direction, STATE state, int tileSize,
+    public Tiles(Tile[][] tiles, DIRECTION direction, STATE state, int tileSize,
                 int size, int maxTiles, int tilesCount, Vector2 offset, boolean isFirstExecution) {
         this._tiles = tiles;
-        this._tilesToMove = tilesToMove;
         this._direction = direction;
         this._state = state;
         this._tileSize = tileSize;
@@ -109,156 +106,35 @@ public class Tiles {
 
     public void moveTiles(DIRECTION direction) {
         this._direction = direction;
-        this._state = STATE.SET_DESTINATION;
+        this._state = STATE.MOVE;//STATE.SET_DESTINATION;
         this._isFirstExecution = true;
     }
 
     public void update() {
-        if (this._state == STATE.SET_DESTINATION) {
-            setDestination();
-        }
-        else if (this._state == STATE.MOVE) {
+        if (this._state == STATE.MOVE) {
             this.moveTiles();
         }
     }
 
-    private void setDestination() {
+    private void moveTiles() {
         switch (this._direction) {
             case UP:
-                this.setDestinationUp();
+                this.moveUp();
                 break;
             case DOWN:
-                this.setDestinationDown();
+                this.moveDown();
                 break;
             case RIGHT:
-                this.setDestinationRight();
+                this.moveRight();
                 break;
             case LEFT:
-                this.setDestinationLeft();
+                this.moveLeft();
                 break;
-        }
-
-        this._state = STATE.MOVE;
-    }
-
-    private void moveTiles() {
-        boolean hasMoves = false;
-        for (int i = 0; i < this._tilesToMove.size(); i++ ) {
-            Tile tile = this._tilesToMove.get(i);
-            float deltaX = 0;
-            float deltaY = 0;
-            int x = tile.getX();
-            int y = tile.getY();
-            if (tile.getPosition().y > tile.getDestination().y) { //down
-                deltaY = -this.getDelta(tile.getPosition().y, tile.getDestination().y, -tile.getSpeed());
-                hasMoves = true;
-            } else if (tile.getPosition().y < tile.getDestination().y) { //up
-                deltaY = this.getDelta(tile.getPosition().y, tile.getDestination().y, -tile.getSpeed());
-                hasMoves = true;
-            } else if (tile.getPosition().x < tile.getDestination().x) { //right
-                deltaX = this.getDelta(tile.getPosition().x, tile.getDestination().x, tile.getSpeed());
-                hasMoves = true;
-            } else if (tile.getPosition().x > tile.getDestination().x) { //left
-                deltaX = -this.getDelta(tile.getPosition().x, tile.getDestination().x, tile.getSpeed());
-                hasMoves = true;
-            }
-
-            tile.move(deltaX, deltaY);
-        }
-        if (!hasMoves) {
-            this._tilesToMove.clear();
-            this.checkMatches();
         }
     }
 
     private float getDelta(float position, float destination, float speed) {
         return Math.min(Math.abs(position - destination), Math.abs(speed));
-    }
-
-    private void checkMatches() {
-        boolean hasMatches = false;
-        if (this._isFirstExecution) {
-            this._isFirstExecution = false;
-            switch (this._direction) {
-                case UP:
-                    hasMatches = this.checkMatchesUp();
-                    break;
-                case DOWN:
-                    hasMatches = this.checkMatchesDown();
-                    break;
-                case RIGHT:
-                    hasMatches = this.checkMatchesRight();
-                    break;
-                case LEFT:
-                    hasMatches = this.checkMatchesLeft();
-                    break;
-            }
-        }
-        if (hasMatches)
-            this._state = STATE.SET_DESTINATION;
-        else
-            this._state = STATE.STATIC;
-
-    }
-
-    private boolean checkMatchesDown () {
-        boolean hasMatches = false;
-        for (int x = 0; x < this._size; x++) {
-            for (int y = 0; y < this._size - 1; y++) {
-                if (this._tiles[x][y] != null) {
-                    if (this._tiles[x][y].match(this._tiles[x][y+1])) {
-                        this.mergeTiles(x, y, x, y+1);
-                        hasMatches = true;
-                    }
-                }
-            }
-        }
-        return hasMatches;
-    }
-
-    private boolean checkMatchesUp () {
-        boolean hasMatches = false;
-        for (int x = 0; x < this._size; x++) {
-            for (int y = this._size - 1; y > 0; y--) {
-                if (this._tiles[x][y] != null) {
-                    if (this._tiles[x][y].match(this._tiles[x][y-1])) {
-                        this.mergeTiles(x, y, x, y-1);
-                        hasMatches = true;
-                    }
-                }
-            }
-        }
-        return hasMatches;
-    }
-
-    private boolean checkMatchesRight () {
-        boolean hasMatches = false;
-        for (int y = 0; y < this._size; y++) {
-            for (int x = 0; x < this._size - 1; x++) {
-                if (this._tiles[x][y] != null) {
-                    if (this._tiles[x][y].match(this._tiles[x+1][y])) {
-                        this.mergeTiles(x, y, x+1, y);
-                        hasMatches = true;
-                    }
-                }
-            }
-        }
-        return hasMatches;
-    }
-
-    private boolean checkMatchesLeft () {
-        boolean hasMatches = false;
-        for (int y = 0; y < this._size; y++) {
-            for (int x = this._size - 1; x > 0; x--) {
-                if (this._tiles[x][y] != null) {
-                    if (this._tiles[x][y].match(this._tiles[x-1][y])) {
-                        this.mergeTiles(x, y,x-1, y);
-                        hasMatches = true;
-                    }
-                }
-            }
-        }
-        return hasMatches;
     }
 
     private void mergeTiles(int x1, int y1, int x2, int y2) {
@@ -267,84 +143,91 @@ public class Tiles {
         this._tilesCount--;
     }
 
-    private void setDestinationLeft() {
+    private void moveLeft() {
+        boolean hasMoves = false;
         for (int y = 0; y < this._size; y++) {
-            Vector2 destination = null;
-            for (int x = 0; x < this._size; x++) {
-                if (this._tiles[x][y] == null) {
-                    if (destination == null) {
-                        destination = new Vector2(x, y);
-                    }
-                } else {
-                    if (destination != null) {
-                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
-                        this._tilesToMove.add(this._tiles[x][y]);
-                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
-                        destination.set(destination.x + 1, destination.y);
-                    }
-                }
+            for (int x = 1; x < this._size; x++) {
+                hasMoves = moveTile(x, y, x-1, y, -1, 0) || hasMoves;
             }
         }
+        if (!hasMoves) this._state = STATE.STATIC;
     }
 
-    private void setDestinationRight() {
+    private void moveRight() {
+        boolean hasMoves = false;
         for (int y = 0; y < this._size; y++) {
-            Vector2 destination = null;
-            for (int x = this._size - 1; x >= 0; x--) {
-                if (this._tiles[x][y] == null) {
-                    if (destination == null) {
-                        destination = new Vector2(x, y);
-                    }
-                } else {
-                    if (destination != null) {
-                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
-                        this._tilesToMove.add(this._tiles[x][y]);
-                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
-                        destination.set(destination.x - 1, destination.y);
-                    }
-                }
+            for (int x = this._size - 2; x >= 0; x--) {
+                hasMoves = moveTile(x, y, x+1, y, 1, 0) || hasMoves;
             }
         }
+        if (!hasMoves) this._state = STATE.STATIC;
     }
 
-    private void setDestinationUp() {
+    private void moveUp() {
+        boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
-            Vector2 destination = null;
-            for (int y = this._size - 1; y >= 0; y--) {
-                if (this._tiles[x][y] == null) {
-                    if (destination == null) {
-                        destination = new Vector2(x, y);
+            for (int y = this._size-2; y >= 0; y--) {
+                hasMoves = moveTile(x, y, x, y+1, 0,1) || hasMoves;
+                /*if (this._tiles[x][y] != null) {
+                    Vector2 destination = this.getInBoardPosition(x, y+1);
+                    Vector2 position = this._tiles[x][y].getPosition();
+                    if (position.y == destination.y) {
+                        this.exchangePosition(x, y, x, y+1);
+                        hasMoves = true;
+                        continue;
                     }
-                } else {
-                    if (destination != null) {
-                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
-                        this._tilesToMove.add(this._tiles[x][y]);
-                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
-                        destination.set(destination.x, destination.y - 1);
+                    if (this._tiles[x][y+1] == null) {
+                        Tile tileToMove = this._tiles[x][y];
+                        float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed());
+                        tileToMove.move(0, deltaY);
+                        hasMoves = true;
+                    } else {
+                        if (this._tiles[x][y].match(this._tiles[x][y-1])) {
+                            this._tiles[x][y] = null;
+                            this._tiles[x][y-1].doubleValue();
+                            hasMoves = true;
+                        }
                     }
-                }
+                }*/
             }
         }
+        if (!hasMoves) this._state = STATE.STATIC;
     }
 
-    private void setDestinationDown() {
+    private void moveDown() {
+        boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
-            Vector2 destination = null;
-            for (int y = 0; y < this._size; y++) {
-                if (this._tiles[x][y] == null) {
-                    if (destination == null) {
-                        destination = new Vector2(x, y);
-                    }
-                } else {
-                    if (destination != null) {
-                        this._tiles[x][y].setDestination(this.getInBoardPosition((int)destination.x, (int)destination.y));
-                        this._tilesToMove.add(this._tiles[x][y]);
-                        this.exchangePosition(x, y, (int)destination.x, (int)destination.y);
-                        destination.set(destination.x, destination.y + 1);
-                    }
+            for (int y = 1; y < this._size; y++) {
+                hasMoves = moveTile(x, y, x, y-1, 0, -1) || hasMoves;
+            }
+        }
+        if (!hasMoves) this._state = STATE.STATIC;
+    }
+
+    private boolean moveTile(int x, int y, int targetX, int targetY, int deltaXMultiplier, int deltaYMultiplier) {
+        boolean hasMoves = false;
+        if (this._tiles[x][y] != null) {
+            Vector2 destination = this.getInBoardPosition(targetX, targetY);
+            Vector2 position = this._tiles[x][y].getPosition();
+            if ((x != targetX && position.x == destination.x)
+                    || (y != targetY && position.y == destination.y)) {
+                this.exchangePosition(x, y, targetX, targetY);
+                return true;
+            }
+            if (this._tiles[targetX][targetY] == null) {
+                Tile tileToMove = this._tiles[x][y];
+                float deltaX = this.getDelta(tileToMove.getPosition().x, destination.x, tileToMove.getSpeed()) * deltaXMultiplier;
+                float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed()) * deltaYMultiplier;
+                tileToMove.move(deltaX, deltaY);
+                hasMoves = true;
+            } else {
+                if (this._tiles[x][y].match(this._tiles[targetX][targetY])) {
+                    this.mergeTiles(x, y, targetX, targetY);
+                    hasMoves = true;
                 }
             }
         }
+        return hasMoves;
     }
 
     private void exchangePosition(int x1, int y1, int x2, int y2) {
@@ -373,8 +256,6 @@ public class Tiles {
 
     public boolean isFirstExecution() { return  this._isFirstExecution; }
 
-    public List<Tile> getTilesToMove() { return this._tilesToMove; }
-
     public void dispose() {
         for (int i = 0; i < this.getSize(); i++){
             for (int j = 0; j < this.getSize(); j++) {
@@ -397,7 +278,7 @@ public class Tiles {
             }
         }
 
-        return new Tiles(tiles, this._tilesToMove, this._direction, this._state,
+        return new Tiles(tiles, this._direction, this._state,
                          this._tileSize, this._size, this._maxTiles, this._tilesCount,
                          new Vector2(this._offset), this._isFirstExecution);
     }
