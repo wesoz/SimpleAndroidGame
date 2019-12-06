@@ -286,14 +286,13 @@ public class Board extends Screen {
 
     private void drawBGRect(int x, int y) {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        float borderWeight = 5f;
+        float borderWeight = 20f;
         Vector2 bottomLeft = new Vector2(x, y);
         Vector2 topLeft = new Vector2(x, y + this._tiles.getTileSize());
         Vector2 topRight = new Vector2(x + this._tiles.getTileSize(), y + this._tiles.getTileSize());
         Vector2 bottomRight = new Vector2(x + this._tiles.getTileSize(), y);
 
-        super._shapeRenderer.setColor(0,0,0,1);
-
+        super._shapeRenderer.setColor(0.7f,0.7f,0.74f,1);
         super._shapeRenderer.rectLine(bottomLeft, topLeft, borderWeight);
         super._shapeRenderer.rectLine(topLeft, topRight, borderWeight);
         super._shapeRenderer.rectLine(topRight, bottomRight, borderWeight);

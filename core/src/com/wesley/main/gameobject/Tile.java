@@ -50,7 +50,7 @@ public class Tile {
         this._bitmapFont.setColor(Color.BLACK);
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
-        this._speed = 40f;
+        this._speed = 50f;
         this._isMerged = false;
     }
 
