@@ -237,6 +237,7 @@ public class Board extends Screen {
             Tiles tiles = this._lastMoves.get(this._lastMoves.size() - 1);
             this._tiles = tiles;
             this._lastMoves.remove(tiles);
+            this.saveState();
         }
     }
 

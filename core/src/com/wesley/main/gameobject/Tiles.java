@@ -211,12 +211,12 @@ public class Tiles {
         boolean hasMoves = false;
         if (this._tiles[x][y] != null) {
             Vector2 destination = this.getInBoardPosition(targetX, targetY);
-            Vector2 position = this._tiles[x][y].getPosition();
+            /*Vector2 position = this._tiles[x][y].getPosition();
             if ((x != targetX && position.x == destination.x)
                     || (y != targetY && position.y == destination.y)) {
                 this.exchangePosition(x, y, targetX, targetY);
                 return true;
-            }
+            }*/
             if (this._tiles[targetX][targetY] == null) {
                 Tile tileToMove = this._tiles[x][y];
                 float deltaX = this.getDelta(tileToMove.getPosition().x, destination.x, tileToMove.getSpeed()) * deltaXMultiplier;
