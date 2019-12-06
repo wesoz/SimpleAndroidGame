@@ -33,7 +33,6 @@ public class Board extends Screen {
     private int _size;
     private int _firstX;
     private int _firstY;
-    private boolean _isPlayerTurn;
     private BitmapFont _font;
     TextButton _btnUndo;
     Stage _stage;
@@ -43,7 +42,6 @@ public class Board extends Screen {
 
     private Board() {
         super();
-        this._isPlayerTurn = true;
         this._restartDialogTable = null;
         this._font = new BitmapFont();
         this._font.setColor(Color.WHITE);
@@ -51,12 +49,11 @@ public class Board extends Screen {
         this._lastMoves = new ArrayList<>();
     }
 
-    public Board(Tiles tiles, ArrayList<Tiles> lastMoves, int size, boolean isPlayerTurn) {
+    public Board(Tiles tiles, ArrayList<Tiles> lastMoves, int size) {
         this();
         this.initialize(size);
         this._tiles = tiles;
         this._lastMoves = lastMoves;
-        this._isPlayerTurn = isPlayerTurn;
     }
 
     public Board(int size) {
@@ -84,7 +81,7 @@ public class Board extends Screen {
     }
 
     private void saveState() {
-        DataModel dataModel = new DataModel(this._tiles, this._lastMoves, this._size, this._isPlayerTurn);
+        DataModel dataModel = new DataModel(this._tiles, this._lastMoves, this._size);
         this._dataManager.saveGame(dataModel);
     }
 
@@ -194,15 +191,10 @@ public class Board extends Screen {
 
         if (this._tiles.getState() == Tiles.STATE.MOVE) {
             this._tiles.update();
-            this._isPlayerTurn = false;
         } else if (this._tiles.getState() == Tiles.STATE.PLAYERTURN){
-            //if (this._isPlayerTurn) {
                 this.handleInput();
-            //} else {
-            //}
         } else if (this._tiles.getState() == Tiles.STATE.CREATETILE) {
             this._tiles.createTile();
-            this._isPlayerTurn = true;
             this.saveState();
         }
 

@@ -25,7 +25,6 @@ public class DataManager {
         this.saveTiles(dataModel.getTiles(), "tiles");
         this.saveLastMoves(dataModel.getLastMoves(), "lastMoves");
         this._preferences.putInteger("size", dataModel.getSize());
-        this._preferences.putBoolean("isPlayerTurn", dataModel.isPlayerTurn());
         this._preferences.flush();
     }
 
@@ -114,7 +113,7 @@ public class DataManager {
         ArrayList<Tiles> lastMoves = this.loadLastMoves("lastMoves");
         boolean isPlayerTurn = this._preferences.getBoolean("isPlayerTurn", false);
 
-        DataModel dataModel = new DataModel(tiles, lastMoves, size, isPlayerTurn);
+        DataModel dataModel = new DataModel(tiles, lastMoves, size);
 
         return dataModel;
     }
