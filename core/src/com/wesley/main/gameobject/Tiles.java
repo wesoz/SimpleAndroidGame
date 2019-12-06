@@ -18,8 +18,8 @@ public class Tiles {
     }
     public enum STATE {
         MOVE,
-        SET_DESTINATION,
-        STATIC
+        PLAYERTURN,
+        CREATETILE
     }
 
     private Tile[][] _tiles;
@@ -39,7 +39,7 @@ public class Tiles {
         this._tiles = new Tile[size][size];
         this._maxTiles = this._size * this._size;
         this._tilesCount = 0;
-        this._state = STATE.STATIC;
+        this._state = STATE.PLAYERTURN;
         this._random = new Random();
         this._isFirstExecution = false;
     }
@@ -76,6 +76,7 @@ public class Tiles {
         } while (this._tiles[x][y] != null);
         this.setTile(new Tile(this._tileSize, 2, this.getInBoardPosition(x, y)), x, y);
         this._tilesCount++;
+        this._state = STATE.PLAYERTURN;
         return true;
     }
 
@@ -106,8 +107,19 @@ public class Tiles {
 
     public void moveTiles(DIRECTION direction) {
         this._direction = direction;
-        this._state = STATE.MOVE;//STATE.SET_DESTINATION;
+        this._state = STATE.MOVE;
         this._isFirstExecution = true;
+        this.resetMergeTiles();
+    }
+
+    private void resetMergeTiles(){
+        for (int x = 0; x < this._size; x++) {
+            for (int y = 0; y < this._size; y++) {
+                if (this._tiles[x][y] != null) {
+                    this._tiles[x][y].setMerged(false);
+                }
+            }
+        }
     }
 
     public void update() {
@@ -117,19 +129,29 @@ public class Tiles {
     }
 
     private void moveTiles() {
+        boolean hasMoves = false;
         switch (this._direction) {
             case UP:
-                this.moveUp();
+                hasMoves = this.moveUp();
                 break;
             case DOWN:
-                this.moveDown();
+                hasMoves = this.moveDown();
                 break;
             case RIGHT:
-                this.moveRight();
+                hasMoves = this.moveRight();
                 break;
             case LEFT:
-                this.moveLeft();
+                hasMoves = this.moveLeft();
                 break;
+        }
+        if (hasMoves) {
+            this._isFirstExecution = false;
+        } else {
+            if (this._isFirstExecution) {
+                this._state = STATE.PLAYERTURN;
+            } else {
+                this._state = STATE.CREATETILE;
+            }
         }
     }
 
@@ -140,71 +162,52 @@ public class Tiles {
     private void mergeTiles(int x1, int y1, int x2, int y2) {
         this._tiles[x1][y1] = null;
         this._tiles[x2][y2].doubleValue();
+        this._tiles[x2][y2].setMerged(true);
         this._tilesCount--;
     }
 
-    private void moveLeft() {
+    private boolean moveLeft() {
         boolean hasMoves = false;
         for (int y = 0; y < this._size; y++) {
             for (int x = 1; x < this._size; x++) {
                 hasMoves = moveTile(x, y, x-1, y, -1, 0) || hasMoves;
             }
         }
-        if (!hasMoves) this._state = STATE.STATIC;
+        return hasMoves;
     }
 
-    private void moveRight() {
+    private boolean moveRight() {
         boolean hasMoves = false;
         for (int y = 0; y < this._size; y++) {
             for (int x = this._size - 2; x >= 0; x--) {
                 hasMoves = moveTile(x, y, x+1, y, 1, 0) || hasMoves;
             }
         }
-        if (!hasMoves) this._state = STATE.STATIC;
+        return hasMoves;
     }
 
-    private void moveUp() {
+    private boolean moveUp() {
         boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
             for (int y = this._size-2; y >= 0; y--) {
                 hasMoves = moveTile(x, y, x, y+1, 0,1) || hasMoves;
-                /*if (this._tiles[x][y] != null) {
-                    Vector2 destination = this.getInBoardPosition(x, y+1);
-                    Vector2 position = this._tiles[x][y].getPosition();
-                    if (position.y == destination.y) {
-                        this.exchangePosition(x, y, x, y+1);
-                        hasMoves = true;
-                        continue;
-                    }
-                    if (this._tiles[x][y+1] == null) {
-                        Tile tileToMove = this._tiles[x][y];
-                        float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed());
-                        tileToMove.move(0, deltaY);
-                        hasMoves = true;
-                    } else {
-                        if (this._tiles[x][y].match(this._tiles[x][y-1])) {
-                            this._tiles[x][y] = null;
-                            this._tiles[x][y-1].doubleValue();
-                            hasMoves = true;
-                        }
-                    }
-                }*/
             }
         }
-        if (!hasMoves) this._state = STATE.STATIC;
+        return hasMoves;
     }
 
-    private void moveDown() {
+    private boolean moveDown() {
         boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
             for (int y = 1; y < this._size; y++) {
                 hasMoves = moveTile(x, y, x, y-1, 0, -1) || hasMoves;
             }
         }
-        if (!hasMoves) this._state = STATE.STATIC;
+        return hasMoves;
     }
 
-    private boolean moveTile(int x, int y, int targetX, int targetY, int deltaXMultiplier, int deltaYMultiplier) {
+    private boolean moveTile(int x, int y, int targetX, int targetY,
+                             int deltaXMultiplier, int deltaYMultiplier) {
         boolean hasMoves = false;
         if (this._tiles[x][y] != null) {
             Vector2 destination = this.getInBoardPosition(targetX, targetY);
@@ -220,7 +223,7 @@ public class Tiles {
                 float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed()) * deltaYMultiplier;
                 tileToMove.move(deltaX, deltaY);
                 hasMoves = true;
-            } else {
+            } else if (!this._tiles[x][y].isMerged()){
                 if (this._tiles[x][y].match(this._tiles[targetX][targetY])) {
                     this.mergeTiles(x, y, targetX, targetY);
                     hasMoves = true;

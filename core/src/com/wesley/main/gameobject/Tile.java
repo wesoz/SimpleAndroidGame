@@ -13,10 +13,10 @@ public class Tile {
     private int _tileSize;
     private float _offset;
     private Vector2 _position;
-    private Vector2 _destination;
     private float _speed;
     private int _x;
     private int _y;
+    private boolean _isMerged;
 
     public float getSpeed() {
         return _speed;
@@ -31,10 +31,9 @@ public class Tile {
     }
 
     public Tile(int value, int tileSize, float offset,
-                Vector2 position, Vector2 destination, float speed, int x, int y) {
+                Vector2 position, float speed, int x, int y) {
         this(tileSize, value, position);
         this._offset = offset;
-        this._destination = destination;
         this._speed = speed;
         this._x = x;
         this._y = y;
@@ -51,7 +50,8 @@ public class Tile {
         this._bitmapFont.setColor(Color.BLACK);
         this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
-        this._speed = 50f;
+        this._speed = 40f;
+        this._isMerged = false;
     }
 
     public void doubleValue() { this.setValue(this._value * 2); }
@@ -128,14 +128,6 @@ public class Tile {
         this._position = position;
     }
 
-    public Vector2 getDestination() {
-        return _destination;
-    }
-
-    public void setDestination(Vector2 destination) {
-        this._destination = destination;
-    }
-
     public int getX() {
         return _x;
     }
@@ -153,11 +145,18 @@ public class Tile {
 
     public float getOffset() { return this._offset; }
 
+    public boolean isMerged() {
+        return _isMerged;
+    }
+
+    public void setMerged(boolean _merged) {
+        this._isMerged = _merged;
+    }
+
     public Tile clone() {
         Vector2 position = new Vector2(this._position);
-        Vector2 destination = this._destination == null ? null : new Vector2(this._destination);
 
-        return new Tile(this._value, this._tileSize, this._offset, position, destination,
+        return new Tile(this._value, this._tileSize, this._offset, position,
                         this._speed, this._x, this._y);
     }
 }

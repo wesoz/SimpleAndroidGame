@@ -192,17 +192,18 @@ public class Board extends Screen {
             return new MainMenu();
         }
 
-        if (this._tiles.getState() != Tiles.STATE.STATIC) {
+        if (this._tiles.getState() == Tiles.STATE.MOVE) {
             this._tiles.update();
             this._isPlayerTurn = false;
-        } else {
-            if (this._isPlayerTurn) {
+        } else if (this._tiles.getState() == Tiles.STATE.PLAYERTURN){
+            //if (this._isPlayerTurn) {
                 this.handleInput();
-            } else {
-                this._tiles.createTile();
-                this._isPlayerTurn = true;
-                this.saveState();
-            }
+            //} else {
+            //}
+        } else if (this._tiles.getState() == Tiles.STATE.CREATETILE) {
+            this._tiles.createTile();
+            this._isPlayerTurn = true;
+            this.saveState();
         }
 
         return this;

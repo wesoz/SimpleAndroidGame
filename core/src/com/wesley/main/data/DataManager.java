@@ -77,7 +77,6 @@ public class DataManager {
             int tileSize = tile.getTileSize();
             float offset = tile.getOffset();
             Vector2 position = tile.getPosition();
-            Vector2 destination = tile.getDestination();
             float speed = tile.getSpeed();
             int x = tile.getX();
             int y = tile.getY();
@@ -87,13 +86,6 @@ public class DataManager {
             this._preferences.putFloat(objectName + "offset", offset);
             this._preferences.putFloat(objectName + "position.x", position.x);
             this._preferences.putFloat(objectName + "position.y", position.y);
-            if (destination != null) {
-                this._preferences.putFloat(objectName + "destination.x", destination.x);
-                this._preferences.putFloat(objectName + "destination.y", destination.y);
-            } else {
-                this._preferences.remove(objectName + "destination.x");
-                this._preferences.remove(objectName + "destination.y");
-            }
             this._preferences.putFloat(objectName + "speed", speed);
             this._preferences.putInteger(objectName + "x", x);
             this._preferences.putInteger(objectName + "y", y);
@@ -165,7 +157,7 @@ public class DataManager {
                              this._preferences.getFloat(objectName + "offset.y", 0));
         isFirstExecution = this._preferences.getBoolean(objectName + "isFirstExecution", false);
 
-        return new Tiles(tiles, Tiles.DIRECTION.DOWN, Tiles.STATE.STATIC,
+        return new Tiles(tiles, Tiles.DIRECTION.DOWN, Tiles.STATE.PLAYERTURN,
                          tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
     }
 
@@ -177,15 +169,10 @@ public class DataManager {
         float offset = this._preferences.getFloat(objectName + "offset", 0);
         Vector2 position = new Vector2(this._preferences.getFloat(objectName + "position.x", 0),
                                        this._preferences.getFloat(objectName + "position.y", 0));
-        Vector2 destination = null;
-        if (this._preferences.contains(objectName + "destination.x")) {
-            destination = new Vector2(this._preferences.getFloat(objectName + "destination.x", 0),
-                                      this._preferences.getFloat(objectName + "destination.y", 0));
-        }
         float speed = this._preferences.getFloat(objectName + "speed", 0);
         int x = this._preferences.getInteger(objectName + "x", 0);
         int y = this._preferences.getInteger(objectName + "y", 0);
 
-        return new Tile(value, tileSize, offset, position, destination, speed, x, y);
+        return new Tile(value, tileSize, offset, position, speed, x, y);
     }
 }
