@@ -17,6 +17,7 @@ public class Tile {
     private int _x;
     private int _y;
     private boolean _isMerged;
+    private boolean _isMoving;
 
     public float getSpeed() {
         return _speed;
@@ -149,8 +150,16 @@ public class Tile {
         return _isMerged;
     }
 
-    public void setMerged(boolean _merged) {
-        this._isMerged = _merged;
+    public void setMerged(boolean _isMerged) {
+        this._isMerged = _isMerged;
+    }
+
+    public boolean isMoving() {
+        return _isMoving;
+    }
+
+    public void setMoving(boolean _isMoving) {
+        this._isMoving = _isMoving;
     }
 
     public Tile clone() {

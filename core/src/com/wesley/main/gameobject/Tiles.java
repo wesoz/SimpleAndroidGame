@@ -107,7 +107,7 @@ public class Tiles {
 
     public void update() {
         if (this._state == STATE.MOVE) {
-            this.moveTiles(false);
+            this.moveTiles();
         }
     }
 
@@ -129,27 +129,24 @@ public class Tiles {
         }
     }
 
-    private void moveTiles(boolean mergeTiles) {
+    private void moveTiles() {
         boolean hasMoves = false;
         switch (this._direction) {
             case UP:
-                hasMoves = this.moveUp(mergeTiles);
+                hasMoves = this.moveUp();
                 break;
             case DOWN:
-                hasMoves = this.moveDown(mergeTiles);
+                hasMoves = this.moveDown();
                 break;
             case RIGHT:
-                hasMoves = this.moveRight(mergeTiles);
+                hasMoves = this.moveRight();
                 break;
             case LEFT:
-                hasMoves = this.moveLeft(mergeTiles);
+                hasMoves = this.moveLeft();
                 break;
         }
         if (hasMoves) {
             this._isFirstExecution = false;
-            //if (!mergeTiles) {
-            //this.moveTiles(true);
-            //}
         } else {
             if (this._isFirstExecution) {
                 this._state = STATE.PLAYER_TURN;
@@ -170,7 +167,7 @@ public class Tiles {
         this._tilesCount--;
     }
 
-    private boolean moveLeft(boolean mergeTiles) {
+    private boolean moveLeft() {
         boolean hasMoves = false;
         for (int y = 0; y < this._size; y++) {
             for (int x = 1; x < this._size; x++) {
@@ -180,7 +177,7 @@ public class Tiles {
         return hasMoves;
     }
 
-    private boolean moveRight(boolean mergeTiles) {
+    private boolean moveRight() {
         boolean hasMoves = false;
         for (int y = 0; y < this._size; y++) {
             for (int x = this._size - 2; x >= 0; x--) {
@@ -190,7 +187,7 @@ public class Tiles {
         return hasMoves;
     }
 
-    private boolean moveUp(boolean mergeTiles) {
+    private boolean moveUp() {
         boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
             for (int y = this._size - 2; y >= 0; y--) {
@@ -200,11 +197,11 @@ public class Tiles {
         return hasMoves;
     }
 
-    private boolean moveDown(boolean mergeTiles) {
+    private boolean moveDown() {
         boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
             for (int y = 1; y < this._size; y++) {
-                hasMoves = this.checkAndMoveTile(x, y, x, y-1, 0, -1) || hasMoves;
+                hasMoves = this.checkAndMoveTile(x, y, x, y - 1, 0, -1) || hasMoves;
             }
         }
         return hasMoves;
@@ -227,22 +224,27 @@ public class Tiles {
                 Tile tileToMove = this._tiles[x][y];
                 float deltaX = this.getDelta(tileToMove.getPosition().x, destination.x, tileToMove.getSpeed()) * deltaXMultiplier;
                 float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed()) * deltaYMultiplier;
+                tileToMove.setMoving(true);
                 return new TileMovement(tileToMove,
                         new MatrixPosition(x, y),
                         new Vector2(deltaX, deltaY),
                         new MatrixPosition(targetX, targetY), destination);
+            } else if (!this._tiles[targetX][targetY].isMoving()
+                        && this._tiles[x][y].match(this._tiles[targetX][targetY])
+                        && !this._tiles[x][y].isMerged()
+                        && !this._tiles[targetX][targetY].isMerged()) {
+                    this.mergeTiles(x, y, targetX, targetY);
             }
         }
         return null;
     }
 
-    private boolean moveTile(TileMovement tileMovement) {
+    private void moveTile(TileMovement tileMovement) {
         tileMovement.Tile.move(tileMovement.Delta.x, tileMovement.Delta.y);
         if (tileMovement.isInFinalDestination()) {
-            this.exchangePosition(tileMovement.MatrixOrigin.x, tileMovement.MatrixOrigin.y, tileMovement.MatrixDestination.x, tileMovement.MatrixDestination.y);
-            return false;
-        } else {
-            return true;
+            this.exchangePosition(tileMovement.MatrixOrigin.x, tileMovement.MatrixOrigin.y,
+                                  tileMovement.MatrixDestination.x, tileMovement.MatrixDestination.y);
+            tileMovement.Tile.setMoving(false);
         }
     }
 
