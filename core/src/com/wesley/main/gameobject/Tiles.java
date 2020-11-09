@@ -204,7 +204,6 @@ public class Tiles {
         boolean hasMoves = false;
         for (int x = 0; x < this._size; x++) {
             for (int y = 1; y < this._size; y++) {
-                //hasMoves = moveTile(x, y, x, y-1, 0, -1, mergeTiles) || hasMoves;
                 hasMoves = this.checkAndMoveTile(x, y, x, y-1, 0, -1) || hasMoves;
             }
         }

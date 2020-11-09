@@ -106,12 +106,12 @@ public class Board extends Screen {
         upTexture = new Texture("buttons/undo.png");
         upDrawable = new TextureRegionDrawable(new TextureRegion(upTexture));
         BitmapFont font = new BitmapFont();
-        font.getData().setScale(4f);
+        font.getData().setScale(3f);
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.font = font;
         textButtonStyle.up = upDrawable;
         this._btnUndo = new TextButton("", textButtonStyle);
-        this._btnUndo.getLabel().setAlignment(Align.topRight);
+        this._btnUndo.getLabel().setAlignment(Align.center);
         this._btnUndo.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
