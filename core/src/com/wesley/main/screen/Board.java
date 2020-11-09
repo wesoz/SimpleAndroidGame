@@ -39,9 +39,14 @@ public class Board extends Screen {
     Table _restartDialogTable;
     Table _gameButtonsTable;
     DataManager _dataManager;
+    BitmapFont _bitmapFont;
 
     private Board() {
         super();
+
+        this._bitmapFont = new BitmapFont();
+        this._bitmapFont.setColor(Color.BLACK);
+        this._bitmapFont.getData().setScale(5);
         this._restartDialogTable = null;
         this._font = new BitmapFont();
         this._font.setColor(Color.WHITE);
@@ -191,9 +196,9 @@ public class Board extends Screen {
 
         if (this._tiles.getState() == Tiles.STATE.MOVE) {
             this._tiles.update();
-        } else if (this._tiles.getState() == Tiles.STATE.PLAYERTURN){
+        } else if (this._tiles.getState() == Tiles.STATE.PLAYER_TURN){
                 this.handleInput();
-        } else if (this._tiles.getState() == Tiles.STATE.CREATETILE) {
+        } else if (this._tiles.getState() == Tiles.STATE.CREATE_TILE) {
             this._tiles.createTile();
             this.saveState();
         }
@@ -212,15 +217,15 @@ public class Board extends Screen {
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (deltaX > 0) {
-                    this._tiles.moveTiles(Tiles.DIRECTION.RIGHT);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.RIGHT);
                 } else {
-                    this._tiles.moveTiles(Tiles.DIRECTION.LEFT);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.LEFT);
                 }
             } else if (Math.abs(deltaX) < Math.abs(deltaY)) {
                 if (deltaY > 0) {
-                    this._tiles.moveTiles(Tiles.DIRECTION.DOWN);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.DOWN);
                 } else {
-                    this._tiles.moveTiles(Tiles.DIRECTION.UP);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.UP);
                 }
             }
         }
@@ -246,12 +251,17 @@ public class Board extends Screen {
         super._shapeRenderer.setColor(0.949f,0.9686f,0.9882f,1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
+        int offset = this._tiles.getTileSize() / 2;
         for (int x = 0; x < this._tiles.getSize(); x++){
             for (int y = 0; y < this._tiles.getSize(); y++) {
                 int xPos = this._firstX + (this._tiles.getTileSize() * x);
                 int yPos = this._firstY + (this._tiles.getTileSize() * y);
                 if (this._tiles.hasTile(x, y)) {
                     this._tiles.draw(super._shapeRenderer, super._spriteBatch, x, y);
+                    /*this._bitmapFont.draw(super._spriteBatch,
+                            "x = " + String.valueOf(x) + ", y = " + String.valueOf(y),
+                            x + (offset * 0.75f),
+                            y + (offset * 1.25f ));*/
                 }
                 this.drawBGRect(xPos, yPos);
             }

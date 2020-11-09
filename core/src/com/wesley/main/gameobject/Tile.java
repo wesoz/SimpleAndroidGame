@@ -111,9 +111,9 @@ public class Tile {
 
     public void writeValue(SpriteBatch spriteBatch, Vector2 position) {
             this._bitmapFont.draw(spriteBatch,
-                                  String.valueOf(_value),
-                                position.x + (_offset * 0.75f),
-                                position.y + (_offset * 1.25f ));
+                                  String.valueOf(this._value),
+                                position.x + (this._offset * 0.75f),
+                                position.y + (this._offset * 1.25f ));
     }
 
     public void dispose() {
