@@ -49,13 +49,14 @@ public class Tile {
     public Tile() {
         this._bitmapFont = new BitmapFont();
         this._bitmapFont.setColor(Color.BLACK);
-        this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
         this._speed = 50f;
         this._isMerged = false;
     }
 
-    public void doubleValue() { this.setValue(this._value * 2); }
+    public void doubleValue() {
+        this.setValue(this._value * 2);
+    }
 
     public boolean match(Tile tile) {
         if (tile == null) return false;
@@ -63,7 +64,9 @@ public class Tile {
         return this._value == tile._value;
     }
 
-    public int getValue() { return this._value; }
+    public int getValue() {
+        return this._value;
+    }
 
     public void setValue(int value) {
         this._value = value;
@@ -111,10 +114,17 @@ public class Tile {
     }
 
     public void writeValue(SpriteBatch spriteBatch, Vector2 position) {
-            this._bitmapFont.draw(spriteBatch,
-                                  String.valueOf(this._value),
-                                position.x + (this._offset * 0.75f),
-                                position.y + (this._offset * 1.25f ));
+        String value = String.valueOf(this._value);
+
+        //Adjust the font size according to the size of the number so it fits the tile;
+        //The bigger the number, the smaller the font;
+        this._bitmapFont.getData().setScale(5f - ((float)value.length() * 0.5f));
+        this._bitmapFont.draw(spriteBatch,
+                value,
+                //Adjust the text offset according to the size of the font;
+                //The smaller the font, the more to the left;
+                position.x + (this._offset * (0.75f - ((value.length() - 1) * 0.2f))),
+                position.y + (this._offset * 1.25f));
     }
 
     public void dispose() {
@@ -142,9 +152,13 @@ public class Tile {
         this._y = y;
     }
 
-    public int getTileSize() { return this._tileSize; }
+    public int getTileSize() {
+        return this._tileSize;
+    }
 
-    public float getOffset() { return this._offset; }
+    public float getOffset() {
+        return this._offset;
+    }
 
     public boolean isMerged() {
         return _isMerged;
@@ -166,6 +180,6 @@ public class Tile {
         Vector2 position = new Vector2(this._position);
 
         return new Tile(this._value, this._tileSize, this._offset, position,
-                        this._speed, this._x, this._y);
+                this._speed, this._x, this._y);
     }
 }
