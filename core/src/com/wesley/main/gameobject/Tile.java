@@ -1,6 +1,8 @@
 package com.wesley.main.gameobject;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -18,6 +20,8 @@ public class Tile {
     private int _y;
     private boolean _isMerged;
     private boolean _isMoving;
+    private float _innerSquareSize;
+    private float _innerSquareOffset;
 
     public float getSpeed() {
         return _speed;
@@ -27,6 +31,8 @@ public class Tile {
         this();
         this._tileSize = tileSize;
         this._offset = this._tileSize / 2;
+        this._innerSquareSize = this._tileSize * 0.8f;
+        this._innerSquareOffset = (this._tileSize - _innerSquareSize) / 2f;
         this.setValue(value);
         this.setPosition(position);
     }
@@ -111,6 +117,11 @@ public class Tile {
     public void drawSquare(ShapeRenderer shapeRenderer, Vector2 position) {
         shapeRenderer.setColor(this._bgColor);
         shapeRenderer.rect(position.x, position.y, this._tileSize, this._tileSize);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.setColor(new Color(this._bgColor.r + 0.2f, this._bgColor.g + 0.2f, this._bgColor.b + 0.2f, 1f));
+        shapeRenderer.rect(position.x + this._innerSquareOffset, position.y + this._innerSquareOffset, this._innerSquareSize, this._innerSquareSize);
+
     }
 
     public void writeValue(SpriteBatch spriteBatch, Vector2 position) {
@@ -118,13 +129,13 @@ public class Tile {
 
         //Adjust the font size according to the size of the number so it fits the tile;
         //The bigger the number, the smaller the font;
-        this._bitmapFont.getData().setScale(5f - ((float)value.length() * 0.5f));
+        this._bitmapFont.getData().setScale(5f - ((float) value.length() * 0.4f));
         this._bitmapFont.draw(spriteBatch,
                 value,
                 //Adjust the text offset according to the size of the font;
-                //The smaller the font, the more to the left;
-                position.x + (this._offset * (0.75f - ((value.length() - 1) * 0.2f))),
-                position.y + (this._offset * 1.25f));
+                //The smaller the font, more to the left;
+                position.x + (this._offset * (0.85f - ((value.length() - 1) * 0.12f))),
+                position.y + (this._offset * 1.2f));
     }
 
     public void dispose() {
