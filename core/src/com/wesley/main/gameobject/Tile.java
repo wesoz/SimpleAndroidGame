@@ -184,7 +184,7 @@ public class Tile {
         return this._mergeTile;
     }
 
-    public void setMerging(Tile tileToMerge) {
+    public void setMergeTile(Tile tileToMerge) {
         this._mergeTile = tileToMerge;
     }
 

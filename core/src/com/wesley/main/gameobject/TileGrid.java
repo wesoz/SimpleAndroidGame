@@ -147,7 +147,7 @@ public class TileGrid {
         for (int x = 0; x < this._size; x++) {
             for (int y = 0; y < this._size; y++) {
                 if (this._tiles[x][y] != null) {
-                    this._tiles[x][y].setMerging(null);
+                    this._tiles[x][y].setMergeTile(null);
                 }
             }
         }
@@ -194,7 +194,7 @@ public class TileGrid {
                     matrixPosition = new MatrixPosition(tilePosition.x, targetY);
                 } else if (target.getMergeTile() == null && current.match(target)) {
                     matrixPosition = new MatrixPosition(tilePosition.x, targetY);
-                    current.setMerging(target);
+                    current.setMergeTile(target);
                 } else {
                     break;
                 }
@@ -206,7 +206,7 @@ public class TileGrid {
                     matrixPosition = new MatrixPosition(targetX, tilePosition.y);
                 } else if (target.getMergeTile() == null && current.match(target)) {
                     matrixPosition = new MatrixPosition(targetX, tilePosition.y);
-                    current.setMerging(target);
+                    current.setMergeTile(target);
                 } else {
                     break;
                 }
@@ -268,7 +268,7 @@ public class TileGrid {
             if (movement.isInFinalDestination()) {
                 tileToMove.setTileMovement(null);
                 if (tileToMove.getMergeTile() != null) {
-                    tileToMove.setMerging(null);
+                    tileToMove.setMergeTile(null);
                     tileToMove.doubleValue();
                 }
                 this._tilesToMove.remove(i);
