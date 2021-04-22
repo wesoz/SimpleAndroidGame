@@ -1,25 +1,25 @@
 package com.wesley.main.data;
 
-import com.wesley.main.gameobject.Tiles;
+import com.wesley.main.gameobject.TileGrid;
 
 import java.util.ArrayList;
 
 public class DataModel {
-    private Tiles _tiles;
-    private ArrayList<Tiles> _lastMoves;
+    private TileGrid _tileGrid;
+    private ArrayList<TileGrid> _lastMoves;
     private int _size;
 
-    public DataModel(Tiles tiles, ArrayList<Tiles> lastMoves, int size) {
-        this._tiles = tiles;
+    public DataModel(TileGrid tileGrid, ArrayList<TileGrid> lastMoves, int size) {
+        this._tileGrid = tileGrid;
         this._lastMoves = lastMoves;
         this._size = size;
     }
 
-    public Tiles getTiles() {
-        return _tiles;
+    public TileGrid getTiles() {
+        return _tileGrid;
     }
 
-    public ArrayList<Tiles> getLastMoves() {
+    public ArrayList<TileGrid> getLastMoves() {
         return _lastMoves;
     }
 

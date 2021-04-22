@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Tiles {
+public class TileGrid {
     public enum DIRECTION {
         UP,
         DOWN,
@@ -36,12 +36,12 @@ public class Tiles {
     private boolean _isFirstExecution;
     private final List<Tile> _tilesToMove;
 
-    public Tiles() {
+    public TileGrid() {
         this._random = new Random();
         this._tilesToMove = new ArrayList<>();
     }
 
-    public Tiles(int size) {
+    public TileGrid(int size) {
         this();
         this._size = size;
         this._tileSize = (Gdx.graphics.getWidth() - 80) / size;
@@ -52,8 +52,8 @@ public class Tiles {
         this._isFirstExecution = false;
     }
 
-    public Tiles(Tile[][] tiles, DIRECTION direction, STATE state, int tileSize,
-                 int size, int maxTiles, int tilesCount, Vector2 offset, boolean isFirstExecution) {
+    public TileGrid(Tile[][] tiles, DIRECTION direction, STATE state, int tileSize,
+                    int size, int maxTiles, int tilesCount, Vector2 offset, boolean isFirstExecution) {
         this();
         this._tiles = tiles;
         this._direction = direction;
@@ -87,26 +87,26 @@ public class Tiles {
         this._state = STATE.PLAYER_TURN;
     }
 
-    public boolean hasTile(int x, int y) {
-        return this._tiles[x][y] != null;
-    }
-
     private Vector2 getInBoardPosition(int x, int y) {
         int xPos = (int) this._offset.x + (this.getTileSize() * x);
         int yPos = (int) this._offset.y + (this.getTileSize() * y);
         return new Vector2(xPos, yPos);
     }
 
-    public void draw(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, int x, int y) {
-        Tile tile = this._tiles[x][y];
+    public void draw(Tile tile, ShapeRenderer shapeRenderer, SpriteBatch spriteBatch) {
+        if (tile != null) {
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            tile.drawSquare(shapeRenderer, tile.getPosition());
+            shapeRenderer.end();
+            spriteBatch.begin();
+            tile.writeValue(spriteBatch, tile.getPosition());
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        tile.drawSquare(shapeRenderer, tile.getPosition());
-        shapeRenderer.end();
-        spriteBatch.begin();
-        tile.writeValue(spriteBatch, tile.getPosition());
+            spriteBatch.end();
 
-        spriteBatch.end();
+            if (tile.getMergeTile() != null) {
+                this.draw(tile.getMergeTile(), shapeRenderer, spriteBatch);
+            }
+        }
     }
 
     public STATE getState() {
@@ -147,7 +147,7 @@ public class Tiles {
         for (int x = 0; x < this._size; x++) {
             for (int y = 0; y < this._size; y++) {
                 if (this._tiles[x][y] != null) {
-                    this._tiles[x][y].setMerging(false);
+                    this._tiles[x][y].setMerging(null);
                 }
             }
         }
@@ -192,18 +192,23 @@ public class Tiles {
                 Tile target = this._tiles[tilePosition.x][targetY];
                 if (target == null) {
                     matrixPosition = new MatrixPosition(tilePosition.x, targetY);
-                } else if (!target.isMerging() && current.match(target)) {
+                } else if (target.getMergeTile() == null && current.match(target)) {
                     matrixPosition = new MatrixPosition(tilePosition.x, targetY);
-                    current.setMerging(true);
-                    target.setMerging(true);
+                    current.setMerging(target);
                 } else {
                     break;
                 }
             }
         } else if (tilePosition.x != targetStart.x) {
             for (int targetX = targetStart.x; this.nextFreeTileTest(tilePosition, targetStart, targetX); targetX += increment) {
-                if (this._tiles[targetX][tilePosition.y] == null) {
+                Tile target = this._tiles[targetX][tilePosition.y];
+                if (target == null) {
                     matrixPosition = new MatrixPosition(targetX, tilePosition.y);
+                } else if (target.getMergeTile() == null && current.match(target)) {
+                    matrixPosition = new MatrixPosition(targetX, tilePosition.y);
+                    current.setMerging(target);
+                } else {
+                    break;
                 }
             }
         }
@@ -262,8 +267,8 @@ public class Tiles {
             tileToMove.move(movement.Delta.x, movement.Delta.y);
             if (movement.isInFinalDestination()) {
                 tileToMove.setTileMovement(null);
-                if (tileToMove.isMerging()) {
-                    tileToMove.setMerging(false);
+                if (tileToMove.getMergeTile() != null) {
+                    tileToMove.setMerging(null);
                     tileToMove.doubleValue();
                 }
                 this._tilesToMove.remove(i);
@@ -330,7 +335,7 @@ public class Tiles {
         }
     }
 
-    public Tiles clone() {
+    public TileGrid clone() {
         Tile[][] tiles = new Tile[this._size][this._size];
 
         for (int x = 0; x < this.getSize(); x++) {
@@ -342,7 +347,7 @@ public class Tiles {
             }
         }
 
-        return new Tiles(tiles, this._direction, this._state,
+        return new TileGrid(tiles, this._direction, this._state,
                 this._tileSize, this._size, this._maxTiles, this._tilesCount,
                 new Vector2(this._offset), this._isFirstExecution);
     }

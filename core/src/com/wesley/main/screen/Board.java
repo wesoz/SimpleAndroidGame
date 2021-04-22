@@ -21,15 +21,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.wesley.main.data.DataManager;
 import com.wesley.main.data.DataModel;
-import com.wesley.main.gameobject.Tiles;
+import com.wesley.main.gameobject.TileGrid;
 
 import java.util.ArrayList;
 
 public class Board extends Screen {
 
     public static final int LAST_MOVES_LIMIT = 5;
-    private Tiles _tiles;
-    private ArrayList<Tiles> _lastMoves;
+    private TileGrid _tileGrid;
+    private ArrayList<TileGrid> _lastMoves;
     private int _gridSize;
     private int _size;
     private int _firstX;
@@ -55,10 +55,10 @@ public class Board extends Screen {
         this._lastMoves = new ArrayList<>();
     }
 
-    public Board(Tiles tiles, ArrayList<Tiles> lastMoves, int size) {
+    public Board(TileGrid tileGrid, ArrayList<TileGrid> lastMoves, int size) {
         this();
         this.initialize(size);
-        this._tiles = tiles;
+        this._tileGrid = tileGrid;
         this._lastMoves = lastMoves;
     }
 
@@ -70,7 +70,7 @@ public class Board extends Screen {
 
     private void initialize(int size) {
         this._size = size;
-        this._tiles = new Tiles(this._size);
+        this._tileGrid = new TileGrid(this._size);
         this.calculateBoundaries();
         _dataManager = new DataManager(Board.getSaveFileID(size));
         this.setupScreenControls();
@@ -87,7 +87,7 @@ public class Board extends Screen {
     }
 
     private void saveState() {
-        DataModel dataModel = new DataModel(this._tiles, this._lastMoves, this._size);
+        DataModel dataModel = new DataModel(this._tileGrid, this._lastMoves, this._size);
         this._dataManager.saveGame(dataModel);
     }
 
@@ -164,8 +164,8 @@ public class Board extends Screen {
     }
 
     private void startGame() {
-        this._tiles.createTile();
-        this._tiles.createTile();
+        this._tileGrid.createTile();
+        this._tileGrid.createTile();
     }
 
     private void restartGame() {
@@ -176,10 +176,10 @@ public class Board extends Screen {
     }
 
     private void calculateBoundaries() {
-        this._gridSize = this._size * this._tiles.getTileSize();
+        this._gridSize = this._size * this._tileGrid.getTileSize();
         this._firstX = (Gdx.app.getGraphics().getWidth() / 2) - (this._gridSize / 2);
         this._firstY = (Gdx.app.getGraphics().getHeight() / 2) - (this._gridSize / 2);
-        this._tiles.setOffset(new Vector2(this._firstX, this._firstY));
+        this._tileGrid.setOffset(new Vector2(this._firstX, this._firstY));
     }
 
     public Screen update() {
@@ -195,13 +195,13 @@ public class Board extends Screen {
             return new MainMenu();
         }
 
-        if (this._tiles.getState() == Tiles.STATE.PLAYER_TURN) {
+        if (this._tileGrid.getState() == TileGrid.STATE.PLAYER_TURN) {
             this.handleInput();
-        } else if (this._tiles.getState() == Tiles.STATE.CREATE_TILE) {
-            this._tiles.createTile();
+        } else if (this._tileGrid.getState() == TileGrid.STATE.CREATE_TILE) {
+            this._tileGrid.createTile();
             this.saveState();
         } else {
-            this._tiles.update();
+            this._tileGrid.update();
         }
 
         return this;
@@ -218,15 +218,15 @@ public class Board extends Screen {
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (deltaX > 0) {
-                    this._tiles.startMovingTiles(Tiles.DIRECTION.RIGHT);
+                    this._tileGrid.startMovingTiles(TileGrid.DIRECTION.RIGHT);
                 } else {
-                    this._tiles.startMovingTiles(Tiles.DIRECTION.LEFT);
+                    this._tileGrid.startMovingTiles(TileGrid.DIRECTION.LEFT);
                 }
             } else if (Math.abs(deltaX) < Math.abs(deltaY)) {
                 if (deltaY > 0) {
-                    this._tiles.startMovingTiles(Tiles.DIRECTION.DOWN);
+                    this._tileGrid.startMovingTiles(TileGrid.DIRECTION.DOWN);
                 } else {
-                    this._tiles.startMovingTiles(Tiles.DIRECTION.UP);
+                    this._tileGrid.startMovingTiles(TileGrid.DIRECTION.UP);
                 }
             }
         }
@@ -235,14 +235,14 @@ public class Board extends Screen {
     private void addMove() {
         if (this._lastMoves.size() == Board.LAST_MOVES_LIMIT)
             this._lastMoves.remove(0);
-        this._lastMoves.add(this._tiles.clone());
+        this._lastMoves.add(this._tileGrid.clone());
     }
 
     private void popMove() {
         if (this._lastMoves.size() > 0) {
-            Tiles tiles = this._lastMoves.get(this._lastMoves.size() - 1);
-            this._tiles = tiles;
-            this._lastMoves.remove(tiles);
+            TileGrid tileGrid = this._lastMoves.get(this._lastMoves.size() - 1);
+            this._tileGrid = tileGrid;
+            this._lastMoves.remove(tileGrid);
             this.saveState();
         }
     }
@@ -252,18 +252,11 @@ public class Board extends Screen {
         super._shapeRenderer.setColor(0.949f, 0.9686f, 0.9882f, 1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
-        int offset = this._tiles.getTileSize() / 2;
-        for (int x = 0; x < this._tiles.getSize(); x++) {
-            for (int y = 0; y < this._tiles.getSize(); y++) {
-                int xPos = this._firstX + (this._tiles.getTileSize() * x);
-                int yPos = this._firstY + (this._tiles.getTileSize() * y);
-                if (this._tiles.hasTile(x, y)) {
-                    this._tiles.draw(super._shapeRenderer, super._spriteBatch, x, y);
-                    /*this._bitmapFont.draw(super._spriteBatch,
-                            "x = " + String.valueOf(x) + ", y = " + String.valueOf(y),
-                            x + (offset * 0.75f),
-                            y + (offset * 1.25f ));*/
-                }
+        for (int x = 0; x < this._tileGrid.getSize(); x++) {
+            for (int y = 0; y < this._tileGrid.getSize(); y++) {
+                int xPos = this._firstX + (this._tileGrid.getTileSize() * x);
+                int yPos = this._firstY + (this._tileGrid.getTileSize() * y);
+                this._tileGrid.draw(this._tileGrid.getTile(x, y), super._shapeRenderer, super._spriteBatch);
                 this.drawBGRect(xPos, yPos);
             }
         }
@@ -300,9 +293,9 @@ public class Board extends Screen {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         float borderWeight = 20f;
         Vector2 bottomLeft = new Vector2(x, y);
-        Vector2 topLeft = new Vector2(x, y + this._tiles.getTileSize());
-        Vector2 topRight = new Vector2(x + this._tiles.getTileSize(), y + this._tiles.getTileSize());
-        Vector2 bottomRight = new Vector2(x + this._tiles.getTileSize(), y);
+        Vector2 topLeft = new Vector2(x, y + this._tileGrid.getTileSize());
+        Vector2 topRight = new Vector2(x + this._tileGrid.getTileSize(), y + this._tileGrid.getTileSize());
+        Vector2 bottomRight = new Vector2(x + this._tileGrid.getTileSize(), y);
 
         super._shapeRenderer.setColor(0.7f, 0.7f, 0.74f, 1);
         super._shapeRenderer.rectLine(bottomLeft, topLeft, borderWeight);
@@ -315,6 +308,6 @@ public class Board extends Screen {
     public void dispose() {
         super.dispose();
 
-        this._tiles.dispose();
+        this._tileGrid.dispose();
     }
 }
