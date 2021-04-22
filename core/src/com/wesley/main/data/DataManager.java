@@ -42,21 +42,12 @@ public class DataManager {
             }
         }
 
-        /*for (int i = 0; i < tiles.getTilesToMove().size(); i++) {
-            String tileID = this._fileID + "_tileToMove_" + i;
-            this.saveTile(tiles.getTilesToMove().get(i), tileID);
-        }*/
-
-        //List<Tile> tilesToMove,
-        //Tiles.DIRECTION direction,
-        //Tiles.STATE state = tiles.getState();
-
         int tileSize = tiles.getTileSize();
         int size = tiles.getSize();
         int maxTiles = tiles.getMaxTiles();
         int tilesCount = tiles.getTilesCount();
         Vector2 offset = tiles.getOffset();
-        //Random random;
+
         boolean isFirstExecution = tiles.isFirstExecution();
 
         this._preferences.putInteger(objectName + "tileSize", tileSize);
@@ -120,7 +111,7 @@ public class DataManager {
 
     private ArrayList<Tiles> loadLastMoves(String objectName) {
         ArrayList<Tiles> lastMoves = new ArrayList<>();
-        for (int i = 0; i < Board.LAST_MOVES_LIMIT;i++) {
+        for (int i = 0; i < Board.LAST_MOVES_LIMIT; i++) {
             Tiles tiles = this.loadTiles(objectName + "_" + i);
             if (tiles == null) break;
             lastMoves.add(tiles);
@@ -145,7 +136,7 @@ public class DataManager {
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 String tileObjectName = objectName + ".tile_" + x + "_" + y + ".";
-                 tiles[x][y] = this.loadTile(tileObjectName);
+                tiles[x][y] = this.loadTile(tileObjectName);
             }
         }
 
@@ -153,21 +144,22 @@ public class DataManager {
         maxTiles = this._preferences.getInteger(objectName + "maxTiles", 0);
         tilesCount = this._preferences.getInteger(objectName + "tilesCount", 0);
         offset = new Vector2(this._preferences.getFloat(objectName + "offset.x", 0),
-                             this._preferences.getFloat(objectName + "offset.y", 0));
+                this._preferences.getFloat(objectName + "offset.y", 0));
         isFirstExecution = this._preferences.getBoolean(objectName + "isFirstExecution", false);
 
         return new Tiles(tiles, Tiles.DIRECTION.DOWN, Tiles.STATE.PLAYER_TURN,
-                         tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
+                tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
     }
 
     private Tile loadTile(String objectName) {
-        int value = this._preferences.getInteger(objectName + "value", -1);;
+        int value = this._preferences.getInteger(objectName + "value", -1);
+        ;
         if (value == -1) return null;
 
         int tileSize = this._preferences.getInteger(objectName + "tileSize", 0);
         float offset = this._preferences.getFloat(objectName + "offset", 0);
         Vector2 position = new Vector2(this._preferences.getFloat(objectName + "position.x", 0),
-                                       this._preferences.getFloat(objectName + "position.y", 0));
+                this._preferences.getFloat(objectName + "position.y", 0));
         float speed = this._preferences.getFloat(objectName + "speed", 0);
         int x = this._preferences.getInteger(objectName + "x", 0);
         int y = this._preferences.getInteger(objectName + "y", 0);

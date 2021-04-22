@@ -18,10 +18,10 @@ public class Tile {
     private float _speed;
     private int _x;
     private int _y;
-    private boolean _isMerged;
-    private boolean _isMoving;
+    private boolean _isMerging;
     private float _innerSquareSize;
     private float _innerSquareOffset;
+    private TileMovement _tileMovement;
 
     public float getSpeed() {
         return _speed;
@@ -57,7 +57,16 @@ public class Tile {
         this._bitmapFont.setColor(Color.BLACK);
         this._bgColor = new Color(Color.WHITE);
         this._speed = 50f;
-        this._isMerged = false;
+        this._isMerging = false;
+        this._tileMovement = null;
+    }
+
+    public void setTileMovement(TileMovement tileMovement) {
+        this._tileMovement = tileMovement;
+    }
+
+    public TileMovement getTileMovement() {
+        return this._tileMovement;
     }
 
     public void doubleValue() {
@@ -171,20 +180,12 @@ public class Tile {
         return this._offset;
     }
 
-    public boolean isMerged() {
-        return _isMerged;
+    public boolean isMerging() {
+        return _isMerging;
     }
 
-    public void setMerged(boolean _isMerged) {
-        this._isMerged = _isMerged;
-    }
-
-    public boolean isMoving() {
-        return _isMoving;
-    }
-
-    public void setMoving(boolean _isMoving) {
-        this._isMoving = _isMoving;
+    public void setMerging(boolean _isMerging) {
+        this._isMerging = _isMerging;
     }
 
     public Tile clone() {

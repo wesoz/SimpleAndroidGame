@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.Align;
 import com.wesley.main.data.DataManager;
 import com.wesley.main.data.DataModel;
 import com.wesley.main.gameobject.Tiles;
+
 import java.util.ArrayList;
 
 public class Board extends Screen {
@@ -98,7 +99,7 @@ public class Board extends Screen {
         btnRestart = new Button(upDrawable);
         btnRestart.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 Board.this.buildRestartDialog();
             }
         });
@@ -194,13 +195,13 @@ public class Board extends Screen {
             return new MainMenu();
         }
 
-        if (this._tiles.getState() == Tiles.STATE.MOVE) {
-            this._tiles.update();
-        } else if (this._tiles.getState() == Tiles.STATE.PLAYER_TURN){
-                this.handleInput();
+        if (this._tiles.getState() == Tiles.STATE.PLAYER_TURN) {
+            this.handleInput();
         } else if (this._tiles.getState() == Tiles.STATE.CREATE_TILE) {
             this._tiles.createTile();
             this.saveState();
+        } else {
+            this._tiles.update();
         }
 
         return this;
@@ -248,11 +249,11 @@ public class Board extends Screen {
 
     public void draw() {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        super._shapeRenderer.setColor(0.949f,0.9686f,0.9882f,1);
+        super._shapeRenderer.setColor(0.949f, 0.9686f, 0.9882f, 1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
         int offset = this._tiles.getTileSize() / 2;
-        for (int x = 0; x < this._tiles.getSize(); x++){
+        for (int x = 0; x < this._tiles.getSize(); x++) {
             for (int y = 0; y < this._tiles.getSize(); y++) {
                 int xPos = this._firstX + (this._tiles.getTileSize() * x);
                 int yPos = this._firstY + (this._tiles.getTileSize() * y);
@@ -303,7 +304,7 @@ public class Board extends Screen {
         Vector2 topRight = new Vector2(x + this._tiles.getTileSize(), y + this._tiles.getTileSize());
         Vector2 bottomRight = new Vector2(x + this._tiles.getTileSize(), y);
 
-        super._shapeRenderer.setColor(0.7f,0.7f,0.74f,1);
+        super._shapeRenderer.setColor(0.7f, 0.7f, 0.74f, 1);
         super._shapeRenderer.rectLine(bottomLeft, topLeft, borderWeight);
         super._shapeRenderer.rectLine(topLeft, topRight, borderWeight);
         super._shapeRenderer.rectLine(topRight, bottomRight, borderWeight);

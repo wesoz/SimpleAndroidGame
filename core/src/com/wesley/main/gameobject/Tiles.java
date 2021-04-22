@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Tiles {
@@ -16,35 +18,43 @@ public class Tiles {
     }
 
     public enum STATE {
+        VALIDATE_MOVE,
         MOVE,
         PLAYER_TURN,
         CREATE_TILE
     }
 
-    private final Tile[][] _tiles;
+    private Tile[][] _tiles;
     private DIRECTION _direction;
     private STATE _state;
-    private final int _tileSize;
-    private final int _size;
-    private final int _maxTiles;
+    private int _tileSize;
+    private int _size;
+    private int _maxTiles;
     private int _tilesCount;
     private Vector2 _offset;
     private final Random _random;
     private boolean _isFirstExecution;
+    private final List<Tile> _tilesToMove;
+
+    public Tiles() {
+        this._random = new Random();
+        this._tilesToMove = new ArrayList<>();
+    }
 
     public Tiles(int size) {
+        this();
         this._size = size;
         this._tileSize = (Gdx.graphics.getWidth() - 80) / size;
         this._tiles = new Tile[size][size];
         this._maxTiles = this._size * this._size;
         this._tilesCount = 0;
         this._state = STATE.PLAYER_TURN;
-        this._random = new Random();
         this._isFirstExecution = false;
     }
 
     public Tiles(Tile[][] tiles, DIRECTION direction, STATE state, int tileSize,
                  int size, int maxTiles, int tilesCount, Vector2 offset, boolean isFirstExecution) {
+        this();
         this._tiles = tiles;
         this._direction = direction;
         this._state = state;
@@ -53,7 +63,6 @@ public class Tiles {
         this._maxTiles = maxTiles;
         this._tilesCount = tilesCount;
         this._offset = offset;
-        this._random = new Random();
         this._isFirstExecution = isFirstExecution;
     }
 
@@ -65,9 +74,9 @@ public class Tiles {
         return _tileSize;
     }
 
-    public boolean createTile() {
+    public void createTile() {
         if (this._tilesCount >= this._maxTiles)
-            return false;
+            return;
         int x, y;
         do {
             x = _random.nextInt(this._tiles.length);
@@ -76,7 +85,6 @@ public class Tiles {
         this.setTile(new Tile(this._tileSize, 2, this.getInBoardPosition(x, y)), x, y);
         this._tilesCount++;
         this._state = STATE.PLAYER_TURN;
-        return true;
     }
 
     public boolean hasTile(int x, int y) {
@@ -106,15 +114,31 @@ public class Tiles {
     }
 
     public void update() {
-        if (this._state == STATE.MOVE) {
-            this.moveTiles();
+        if (this._state == STATE.VALIDATE_MOVE) {
+            switch (this._direction) {
+                case UP:
+                    this.setTilesToMoveUp();
+                    break;
+                case DOWN:
+                    this.setTilesToMoveDown();
+                    break;
+                case RIGHT:
+                    this.setTilesToMoveRight();
+                    break;
+                case LEFT:
+                    this.setTilesToMoveLeft();
+                    break;
+            }
+            this._state = STATE.MOVE;
+        } else if (this._state == STATE.MOVE) {
+            this.updateTiles();
         }
     }
 
     // TILES MOVEMENT
     public void startMovingTiles(DIRECTION direction) {
         this._direction = direction;
-        this._state = STATE.MOVE;
+        this._state = STATE.VALIDATE_MOVE;
         this._isFirstExecution = true;
         this.resetMergeTiles();
     }
@@ -123,30 +147,16 @@ public class Tiles {
         for (int x = 0; x < this._size; x++) {
             for (int y = 0; y < this._size; y++) {
                 if (this._tiles[x][y] != null) {
-                    this._tiles[x][y].setMerged(false);
+                    this._tiles[x][y].setMerging(false);
                 }
             }
         }
     }
 
-    private void moveTiles() {
-        boolean hasMoves = false;
-        switch (this._direction) {
-            case UP:
-                hasMoves = this.moveUp();
-                break;
-            case DOWN:
-                hasMoves = this.moveDown();
-                break;
-            case RIGHT:
-                hasMoves = this.moveRight();
-                break;
-            case LEFT:
-                hasMoves = this.moveLeft();
-                break;
-        }
-        if (hasMoves) {
+    private void updateTiles() {
+        if (this._tilesToMove.size() > 0) {
             this._isFirstExecution = false;
+            this.moveTiles();
         } else {
             if (this._isFirstExecution) {
                 this._state = STATE.PLAYER_TURN;
@@ -157,102 +167,126 @@ public class Tiles {
     }
 
     private float getDelta(float position, float destination, float speed) {
-        return Math.min(Math.abs(position - destination), Math.abs(speed));
+        return position == destination ? 0 : Math.min(Math.abs(position - destination), Math.abs(speed));
     }
 
-    private void mergeTiles(int x1, int y1, int x2, int y2) {
-        this._tiles[x1][y1] = null;
-        this._tiles[x2][y2].doubleValue();
-        this._tiles[x2][y2].setMerged(true);
-        this._tilesCount--;
-    }
-
-    private boolean moveLeft() {
-        boolean hasMoves = false;
-        for (int y = 0; y < this._size; y++) {
-            for (int x = 1; x < this._size; x++) {
-                hasMoves = this.checkAndMoveTile(x, y, x - 1, y, -1, 0) || hasMoves;
-            }
+    private boolean nextFreeTileTest(MatrixPosition tilePosition, MatrixPosition targetStart, int count) {
+        if (tilePosition.y < targetStart.y) {
+            return count <= this._size - 1;
+        } else if (tilePosition.y > targetStart.y) {
+            return count >= 0;
+        } else if (tilePosition.x < targetStart.x) {
+            return count <= this._size - 1;
+        } else if (tilePosition.x > targetStart.x) {
+            return count >= 0;
         }
-        return hasMoves;
-    }
 
-    private boolean moveRight() {
-        boolean hasMoves = false;
-        for (int y = 0; y < this._size; y++) {
-            for (int x = this._size - 2; x >= 0; x--) {
-                hasMoves = this.checkAndMoveTile(x, y, x + 1, y, 1, 0) || hasMoves;
-            }
-        }
-        return hasMoves;
-    }
-
-    private boolean moveUp() {
-        boolean hasMoves = false;
-        for (int x = 0; x < this._size; x++) {
-            for (int y = this._size - 2; y >= 0; y--) {
-                hasMoves = this.checkAndMoveTile(x, y, x, y + 1, 0, 1) || hasMoves;
-            }
-        }
-        return hasMoves;
-    }
-
-    private boolean moveDown() {
-        boolean hasMoves = false;
-        for (int x = 0; x < this._size; x++) {
-            for (int y = 1; y < this._size; y++) {
-                hasMoves = this.checkAndMoveTile(x, y, x, y - 1, 0, -1) || hasMoves;
-            }
-        }
-        return hasMoves;
-    }
-
-    private boolean checkAndMoveTile(int x, int y, int targetX, int targetY, int deltaXMultiplier, int deltaYMultiplier) {
-        TileMovement tileMovement = getTileMovement(x, y, targetX, targetY, deltaXMultiplier, deltaYMultiplier);
-        if (tileMovement != null) {
-            moveTile(tileMovement);
-            return true;
-        }
         return false;
     }
 
-    private TileMovement getTileMovement(int x, int y, int targetX, int targetY,
-                                         int deltaXMultiplier, int deltaYMultiplier) {
-        if (this._tiles[x][y] != null) {
-            Vector2 destination = this.getInBoardPosition(targetX, targetY);
-            if (this._tiles[targetX][targetY] == null) {
-                Tile tileToMove = this._tiles[x][y];
-                float deltaX = this.getDelta(tileToMove.getPosition().x, destination.x, tileToMove.getSpeed()) * deltaXMultiplier;
-                float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed()) * deltaYMultiplier;
-                tileToMove.setMoving(true);
-                return new TileMovement(tileToMove,
-                        new MatrixPosition(x, y),
-                        new Vector2(deltaX, deltaY),
-                        new MatrixPosition(targetX, targetY), destination);
-            } else if (!this._tiles[targetX][targetY].isMoving()
-                        && this._tiles[x][y].match(this._tiles[targetX][targetY])
-                        && !this._tiles[x][y].isMerged()
-                        && !this._tiles[targetX][targetY].isMerged()) {
-                    this.mergeTiles(x, y, targetX, targetY);
+    private MatrixPosition getNextFreeTile(MatrixPosition tilePosition, MatrixPosition targetStart, int increment) {
+        MatrixPosition matrixPosition = null;
+        Tile current = this._tiles[tilePosition.x][tilePosition.y];
+        if (tilePosition.y != targetStart.y) {
+            for (int targetY = targetStart.y; this.nextFreeTileTest(tilePosition, targetStart, targetY); targetY += increment) {
+                Tile target = this._tiles[tilePosition.x][targetY];
+                if (target == null) {
+                    matrixPosition = new MatrixPosition(tilePosition.x, targetY);
+                } else if (!target.isMerging() && current.match(target)) {
+                    matrixPosition = new MatrixPosition(tilePosition.x, targetY);
+                    current.setMerging(true);
+                    target.setMerging(true);
+                } else {
+                    break;
+                }
+            }
+        } else if (tilePosition.x != targetStart.x) {
+            for (int targetX = targetStart.x; this.nextFreeTileTest(tilePosition, targetStart, targetX); targetX += increment) {
+                if (this._tiles[targetX][tilePosition.y] == null) {
+                    matrixPosition = new MatrixPosition(targetX, tilePosition.y);
+                }
             }
         }
-        return null;
+        return matrixPosition;
     }
 
-    private void moveTile(TileMovement tileMovement) {
-        tileMovement.Tile.move(tileMovement.Delta.x, tileMovement.Delta.y);
-        if (tileMovement.isInFinalDestination()) {
-            this.exchangePosition(tileMovement.MatrixOrigin.x, tileMovement.MatrixOrigin.y,
-                                  tileMovement.MatrixDestination.x, tileMovement.MatrixDestination.y);
-            tileMovement.Tile.setMoving(false);
+    private void addToMovementList(Tile tileToMove, MatrixPosition currentPosition, MatrixPosition targetPosition, int increment) {
+        if (tileToMove != null) {
+            if (tileToMove.getTileMovement() == null) {
+                MatrixPosition targetMatrixPosition = this.getNextFreeTile(currentPosition, targetPosition, increment);
+                if (targetMatrixPosition != null) {
+                    this.exchangePosition(currentPosition.x, currentPosition.y, targetMatrixPosition.x, targetMatrixPosition.y);
+                    tileToMove.setTileMovement(this.getTileMovement(tileToMove, currentPosition, targetMatrixPosition));
+                    this._tilesToMove.add(tileToMove);
+                }
+            }
         }
+    }
+
+    private void setTilesToMoveUp() {
+        for (int x = 0; x < this._size; x++) {
+            for (int y = this._size - 1; y >= 0; y--) {
+                this.addToMovementList(this._tiles[x][y], new MatrixPosition(x, y), new MatrixPosition(x, y + 1), 1);
+            }
+        }
+    }
+
+    private void setTilesToMoveDown() {
+        for (int x = 0; x < this._size; x++) {
+            for (int y = 1; y < this._size; y++) {
+                this.addToMovementList(this._tiles[x][y], new MatrixPosition(x, y), new MatrixPosition(x, y - 1), -1);
+            }
+        }
+    }
+
+    private void setTilesToMoveRight() {
+        for (int y = 0; y < this._size; y++) {
+            for (int x = this._size - 2; x >= 0; x--) {
+                this.addToMovementList(this._tiles[x][y], new MatrixPosition(x, y), new MatrixPosition(x + 1, y), 1);
+            }
+        }
+    }
+
+    private void setTilesToMoveLeft() {
+        for (int y = 0; y < this._size; y++) {
+            for (int x = 1; x < this._size; x++) {
+                this.addToMovementList(this._tiles[x][y], new MatrixPosition(x, y), new MatrixPosition(x - 1, y), -1);
+            }
+        }
+    }
+
+    private void moveTiles() {
+        for (int i = 0; i < this._tilesToMove.size(); i++) {
+            Tile tileToMove = this._tilesToMove.get(i);
+            TileMovement movement = tileToMove.getTileMovement();
+            tileToMove.move(movement.Delta.x, movement.Delta.y);
+            if (movement.isInFinalDestination()) {
+                tileToMove.setTileMovement(null);
+                if (tileToMove.isMerging()) {
+                    tileToMove.setMerging(false);
+                    tileToMove.doubleValue();
+                }
+                this._tilesToMove.remove(i);
+                i--;
+            }
+        }
+    }
+
+    private TileMovement getTileMovement(Tile tileToMove, MatrixPosition currentPosition, MatrixPosition target) {
+        Vector2 destination = this.getInBoardPosition(target.x, target.y);
+        float deltaX = this.getDelta(tileToMove.getPosition().x, destination.x, tileToMove.getSpeed()) * (tileToMove.getPosition().x > destination.x ? -1 : 1);
+        float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed()) * (tileToMove.getPosition().y > destination.y ? -1 : 1);
+
+        return new TileMovement(tileToMove,
+                new MatrixPosition(currentPosition.x, currentPosition.y),
+                new Vector2(deltaX, deltaY),
+                new MatrixPosition(target.x, target.y), destination);
     }
 
     private void exchangePosition(int x1, int y1, int x2, int y2) {
-        Tile element1 = this._tiles[x1][y1];
-        Tile element2 = this._tiles[x2][y2];
-        this.setTile(element2, x1, y1);
-        this.setTile(element1, x2, y2);
+        this.setTile(this._tiles[x1][y1], x2, y2);
+        this.setTile(null, x1, y1);
+        this._tilesCount--;
     }
 
     // END TILES MOVEMENT
