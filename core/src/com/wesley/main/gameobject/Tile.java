@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.wesley.main.animations.Animation;
+import com.wesley.main.animations.SquareAnimationFrame;
 
 public class Tile {
     private BitmapFont _bitmapFont;
@@ -22,6 +24,8 @@ public class Tile {
     private float _innerSquareSize;
     private float _innerSquareOffset;
     private TileMovement _tileMovement;
+    private float _totalElapsedTime;
+    private Animation _animation;
 
     public float getSpeed() {
         return _speed;
@@ -59,6 +63,8 @@ public class Tile {
         this._speed = 50f;
         this._isMerging = false;
         this._tileMovement = null;
+        this._totalElapsedTime = 0;
+        this._animation = new Animation();
     }
 
     public void setTileMovement(TileMovement tileMovement) {
@@ -121,6 +127,25 @@ public class Tile {
             default:
                 this._bgColor.set(30 / 255.0f, 179 / 255.0f, 30 / 255.0f, 1);
         }
+        this.setAnimationFrames();
+    }
+
+    private void setAnimationFrames() {
+        SquareAnimationFrame[] animationFrames = new SquareAnimationFrame[3];
+
+        Vector2 offset = new Vector2(this._innerSquareOffset, this._innerSquareOffset);
+        Color color = new Color(this._bgColor.r + 0.2f, this._bgColor.g + 0.2f, this._bgColor.b + 0.2f, 1f);
+        animationFrames[0] = new SquareAnimationFrame(offset, color, this._innerSquareSize, 0.15f);
+
+        offset = new Vector2(this._innerSquareOffset, this._innerSquareOffset);
+        color = new Color(this._bgColor.r + 0.3f, this._bgColor.g + 0.3f, this._bgColor.b + 0.3f, 1f);
+        animationFrames[1] = new SquareAnimationFrame(offset, color, this._innerSquareSize, 0.15f);
+
+        offset = new Vector2(this._innerSquareOffset, this._innerSquareOffset);
+        color = new Color(this._bgColor.r + 0.4f, this._bgColor.g + 0.4f, this._bgColor.b + 0.4f, 1f);
+        animationFrames[2] = new SquareAnimationFrame(offset, color, this._innerSquareSize, 0.15f);
+
+        this._animation.replaceFrames(animationFrames, Animation.REPEAT.GO_BACK);
     }
 
     public void drawSquare(ShapeRenderer shapeRenderer, Vector2 position) {
@@ -128,8 +153,12 @@ public class Tile {
         shapeRenderer.rect(position.x, position.y, this._tileSize, this._tileSize);
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        shapeRenderer.setColor(new Color(this._bgColor.r + 0.2f, this._bgColor.g + 0.2f, this._bgColor.b + 0.2f, 1f));
-        shapeRenderer.rect(position.x + this._innerSquareOffset, position.y + this._innerSquareOffset, this._innerSquareSize, this._innerSquareSize);
+
+        this._totalElapsedTime += Gdx.graphics.getDeltaTime();
+
+        SquareAnimationFrame frame = (SquareAnimationFrame) this._animation.getNextFrame(this._totalElapsedTime);
+        shapeRenderer.setColor(frame.getColor());
+        shapeRenderer.rect(position.x + frame.getOffset().x, position.y + frame.getOffset().y, frame.getSize(), frame.getSize());
 
     }
 
