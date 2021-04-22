@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.math.Vector2;
 import com.wesley.main.gameobject.Tile;
-import com.wesley.main.gameobject.Tiles;
+import com.wesley.main.gameobject.TileGrid;
 import com.wesley.main.screen.Board;
 
 import java.util.ArrayList;
@@ -28,27 +28,27 @@ public class DataManager {
         this._preferences.flush();
     }
 
-    private void saveLastMoves(ArrayList<Tiles> lastMoves, String objectName) {
+    private void saveLastMoves(ArrayList<TileGrid> lastMoves, String objectName) {
         for (int i = 0; i < lastMoves.size(); i++) {
             this.saveTiles(lastMoves.get(i), objectName + "_" + i);
         }
     }
 
-    private void saveTiles(Tiles tiles, String objectName) {
-        for (int x = 0; x < tiles.getSize(); x++) {
-            for (int y = 0; y < tiles.getSize(); y++) {
+    private void saveTiles(TileGrid tileGrid, String objectName) {
+        for (int x = 0; x < tileGrid.getSize(); x++) {
+            for (int y = 0; y < tileGrid.getSize(); y++) {
                 String tileObjectName = objectName + ".tile_" + x + "_" + y + ".";
-                this.saveTile(tiles.getTile(x, y), tileObjectName);
+                this.saveTile(tileGrid.getTile(x, y), tileObjectName);
             }
         }
 
-        int tileSize = tiles.getTileSize();
-        int size = tiles.getSize();
-        int maxTiles = tiles.getMaxTiles();
-        int tilesCount = tiles.getTilesCount();
-        Vector2 offset = tiles.getOffset();
+        int tileSize = tileGrid.getTileSize();
+        int size = tileGrid.getSize();
+        int maxTiles = tileGrid.getMaxTiles();
+        int tilesCount = tileGrid.getTilesCount();
+        Vector2 offset = tileGrid.getOffset();
 
-        boolean isFirstExecution = tiles.isFirstExecution();
+        boolean isFirstExecution = tileGrid.isFirstExecution();
 
         this._preferences.putInteger(objectName + "tileSize", tileSize);
         this._preferences.putInteger(objectName + "size", size);
@@ -100,26 +100,26 @@ public class DataManager {
         int size = this._preferences.getInteger("size", -1);
         if (size == -1) return null;
 
-        Tiles tiles = this.loadTiles("tiles");
-        ArrayList<Tiles> lastMoves = this.loadLastMoves("lastMoves");
+        TileGrid tileGrid = this.loadTiles("tiles");
+        ArrayList<TileGrid> lastMoves = this.loadLastMoves("lastMoves");
         boolean isPlayerTurn = this._preferences.getBoolean("isPlayerTurn", false);
 
-        DataModel dataModel = new DataModel(tiles, lastMoves, size);
+        DataModel dataModel = new DataModel(tileGrid, lastMoves, size);
 
         return dataModel;
     }
 
-    private ArrayList<Tiles> loadLastMoves(String objectName) {
-        ArrayList<Tiles> lastMoves = new ArrayList<>();
+    private ArrayList<TileGrid> loadLastMoves(String objectName) {
+        ArrayList<TileGrid> lastMoves = new ArrayList<>();
         for (int i = 0; i < Board.LAST_MOVES_LIMIT; i++) {
-            Tiles tiles = this.loadTiles(objectName + "_" + i);
-            if (tiles == null) break;
-            lastMoves.add(tiles);
+            TileGrid tileGrid = this.loadTiles(objectName + "_" + i);
+            if (tileGrid == null) break;
+            lastMoves.add(tileGrid);
         }
         return lastMoves;
     }
 
-    private Tiles loadTiles(String objectName) {
+    private TileGrid loadTiles(String objectName) {
         int size;
         Tile[][] tiles;
         int tileSize;
@@ -147,7 +147,7 @@ public class DataManager {
                 this._preferences.getFloat(objectName + "offset.y", 0));
         isFirstExecution = this._preferences.getBoolean(objectName + "isFirstExecution", false);
 
-        return new Tiles(tiles, Tiles.DIRECTION.DOWN, Tiles.STATE.PLAYER_TURN,
+        return new TileGrid(tiles, TileGrid.DIRECTION.DOWN, TileGrid.STATE.PLAYER_TURN,
                 tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
     }
 
