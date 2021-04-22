@@ -25,7 +25,6 @@ public class DataManager {
         this.saveTiles(dataModel.getTiles(), "tiles");
         this.saveLastMoves(dataModel.getLastMoves(), "lastMoves");
         this._preferences.putInteger("size", dataModel.getSize());
-        this._preferences.putBoolean("isPlayerTurn", dataModel.isPlayerTurn());
         this._preferences.flush();
     }
 
@@ -43,21 +42,12 @@ public class DataManager {
             }
         }
 
-        /*for (int i = 0; i < tiles.getTilesToMove().size(); i++) {
-            String tileID = this._fileID + "_tileToMove_" + i;
-            this.saveTile(tiles.getTilesToMove().get(i), tileID);
-        }*/
-
-        //List<Tile> tilesToMove,
-        //Tiles.DIRECTION direction,
-        //Tiles.STATE state = tiles.getState();
-
         int tileSize = tiles.getTileSize();
         int size = tiles.getSize();
         int maxTiles = tiles.getMaxTiles();
         int tilesCount = tiles.getTilesCount();
         Vector2 offset = tiles.getOffset();
-        //Random random;
+
         boolean isFirstExecution = tiles.isFirstExecution();
 
         this._preferences.putInteger(objectName + "tileSize", tileSize);
@@ -77,7 +67,6 @@ public class DataManager {
             int tileSize = tile.getTileSize();
             float offset = tile.getOffset();
             Vector2 position = tile.getPosition();
-            Vector2 destination = tile.getDestination();
             float speed = tile.getSpeed();
             int x = tile.getX();
             int y = tile.getY();
@@ -87,13 +76,6 @@ public class DataManager {
             this._preferences.putFloat(objectName + "offset", offset);
             this._preferences.putFloat(objectName + "position.x", position.x);
             this._preferences.putFloat(objectName + "position.y", position.y);
-            if (destination != null) {
-                this._preferences.putFloat(objectName + "destination.x", destination.x);
-                this._preferences.putFloat(objectName + "destination.y", destination.y);
-            } else {
-                this._preferences.remove(objectName + "destination.x");
-                this._preferences.remove(objectName + "destination.y");
-            }
             this._preferences.putFloat(objectName + "speed", speed);
             this._preferences.putInteger(objectName + "x", x);
             this._preferences.putInteger(objectName + "y", y);
@@ -122,14 +104,14 @@ public class DataManager {
         ArrayList<Tiles> lastMoves = this.loadLastMoves("lastMoves");
         boolean isPlayerTurn = this._preferences.getBoolean("isPlayerTurn", false);
 
-        DataModel dataModel = new DataModel(tiles, lastMoves, size, isPlayerTurn);
+        DataModel dataModel = new DataModel(tiles, lastMoves, size);
 
         return dataModel;
     }
 
     private ArrayList<Tiles> loadLastMoves(String objectName) {
         ArrayList<Tiles> lastMoves = new ArrayList<>();
-        for (int i = 0; i < Board.LAST_MOVES_LIMIT;i++) {
+        for (int i = 0; i < Board.LAST_MOVES_LIMIT; i++) {
             Tiles tiles = this.loadTiles(objectName + "_" + i);
             if (tiles == null) break;
             lastMoves.add(tiles);
@@ -154,7 +136,7 @@ public class DataManager {
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 String tileObjectName = objectName + ".tile_" + x + "_" + y + ".";
-                 tiles[x][y] = this.loadTile(tileObjectName);
+                tiles[x][y] = this.loadTile(tileObjectName);
             }
         }
 
@@ -162,30 +144,26 @@ public class DataManager {
         maxTiles = this._preferences.getInteger(objectName + "maxTiles", 0);
         tilesCount = this._preferences.getInteger(objectName + "tilesCount", 0);
         offset = new Vector2(this._preferences.getFloat(objectName + "offset.x", 0),
-                             this._preferences.getFloat(objectName + "offset.y", 0));
+                this._preferences.getFloat(objectName + "offset.y", 0));
         isFirstExecution = this._preferences.getBoolean(objectName + "isFirstExecution", false);
 
-        return new Tiles(tiles, new ArrayList<Tile>(), Tiles.DIRECTION.DOWN, Tiles.STATE.STATIC,
-                         tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
+        return new Tiles(tiles, Tiles.DIRECTION.DOWN, Tiles.STATE.PLAYER_TURN,
+                tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
     }
 
     private Tile loadTile(String objectName) {
-        int value = this._preferences.getInteger(objectName + "value", -1);;
+        int value = this._preferences.getInteger(objectName + "value", -1);
+        ;
         if (value == -1) return null;
 
         int tileSize = this._preferences.getInteger(objectName + "tileSize", 0);
         float offset = this._preferences.getFloat(objectName + "offset", 0);
         Vector2 position = new Vector2(this._preferences.getFloat(objectName + "position.x", 0),
-                                       this._preferences.getFloat(objectName + "position.y", 0));
-        Vector2 destination = null;
-        if (this._preferences.contains(objectName + "destination.x")) {
-            destination = new Vector2(this._preferences.getFloat(objectName + "destination.x", 0),
-                                      this._preferences.getFloat(objectName + "destination.y", 0));
-        }
+                this._preferences.getFloat(objectName + "position.y", 0));
         float speed = this._preferences.getFloat(objectName + "speed", 0);
         int x = this._preferences.getInteger(objectName + "x", 0);
         int y = this._preferences.getInteger(objectName + "y", 0);
 
-        return new Tile(value, tileSize, offset, position, destination, speed, x, y);
+        return new Tile(value, tileSize, offset, position, speed, x, y);
     }
 }

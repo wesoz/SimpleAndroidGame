@@ -1,6 +1,8 @@
 package com.wesley.main.gameobject;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -13,10 +15,13 @@ public class Tile {
     private int _tileSize;
     private float _offset;
     private Vector2 _position;
-    private Vector2 _destination;
     private float _speed;
     private int _x;
     private int _y;
+    private boolean _isMerging;
+    private float _innerSquareSize;
+    private float _innerSquareOffset;
+    private TileMovement _tileMovement;
 
     public float getSpeed() {
         return _speed;
@@ -26,15 +31,16 @@ public class Tile {
         this();
         this._tileSize = tileSize;
         this._offset = this._tileSize / 2;
+        this._innerSquareSize = this._tileSize * 0.8f;
+        this._innerSquareOffset = (this._tileSize - _innerSquareSize) / 2f;
         this.setValue(value);
         this.setPosition(position);
     }
 
     public Tile(int value, int tileSize, float offset,
-                Vector2 position, Vector2 destination, float speed, int x, int y) {
+                Vector2 position, float speed, int x, int y) {
         this(tileSize, value, position);
         this._offset = offset;
-        this._destination = destination;
         this._speed = speed;
         this._x = x;
         this._y = y;
@@ -49,12 +55,23 @@ public class Tile {
     public Tile() {
         this._bitmapFont = new BitmapFont();
         this._bitmapFont.setColor(Color.BLACK);
-        this._bitmapFont.getData().setScale(5);
         this._bgColor = new Color(Color.WHITE);
         this._speed = 50f;
+        this._isMerging = false;
+        this._tileMovement = null;
     }
 
-    public void doubleValue() { this.setValue(this._value * 2); }
+    public void setTileMovement(TileMovement tileMovement) {
+        this._tileMovement = tileMovement;
+    }
+
+    public TileMovement getTileMovement() {
+        return this._tileMovement;
+    }
+
+    public void doubleValue() {
+        this.setValue(this._value * 2);
+    }
 
     public boolean match(Tile tile) {
         if (tile == null) return false;
@@ -62,7 +79,9 @@ public class Tile {
         return this._value == tile._value;
     }
 
-    public int getValue() { return this._value; }
+    public int getValue() {
+        return this._value;
+    }
 
     public void setValue(int value) {
         this._value = value;
@@ -107,13 +126,25 @@ public class Tile {
     public void drawSquare(ShapeRenderer shapeRenderer, Vector2 position) {
         shapeRenderer.setColor(this._bgColor);
         shapeRenderer.rect(position.x, position.y, this._tileSize, this._tileSize);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.setColor(new Color(this._bgColor.r + 0.2f, this._bgColor.g + 0.2f, this._bgColor.b + 0.2f, 1f));
+        shapeRenderer.rect(position.x + this._innerSquareOffset, position.y + this._innerSquareOffset, this._innerSquareSize, this._innerSquareSize);
+
     }
 
     public void writeValue(SpriteBatch spriteBatch, Vector2 position) {
-            this._bitmapFont.draw(spriteBatch,
-                                  String.valueOf(_value),
-                                position.x + (_offset * 0.75f),
-                                position.y + (_offset * 1.25f ));
+        String value = String.valueOf(this._value);
+
+        //Adjust the font size according to the size of the number so it fits the tile;
+        //The bigger the number, the smaller the font;
+        this._bitmapFont.getData().setScale(5f - ((float) value.length() * 0.4f));
+        this._bitmapFont.draw(spriteBatch,
+                value,
+                //Adjust the text offset according to the size of the font;
+                //The smaller the font, more to the left;
+                position.x + (this._offset * (0.85f - ((value.length() - 1) * 0.12f))),
+                position.y + (this._offset * 1.2f));
     }
 
     public void dispose() {
@@ -126,14 +157,6 @@ public class Tile {
 
     public void setPosition(Vector2 position) {
         this._position = position;
-    }
-
-    public Vector2 getDestination() {
-        return _destination;
-    }
-
-    public void setDestination(Vector2 destination) {
-        this._destination = destination;
     }
 
     public int getX() {
@@ -149,15 +172,26 @@ public class Tile {
         this._y = y;
     }
 
-    public int getTileSize() { return this._tileSize; }
+    public int getTileSize() {
+        return this._tileSize;
+    }
 
-    public float getOffset() { return this._offset; }
+    public float getOffset() {
+        return this._offset;
+    }
+
+    public boolean isMerging() {
+        return _isMerging;
+    }
+
+    public void setMerging(boolean _isMerging) {
+        this._isMerging = _isMerging;
+    }
 
     public Tile clone() {
         Vector2 position = new Vector2(this._position);
-        Vector2 destination = this._destination == null ? null : new Vector2(this._destination);
 
-        return new Tile(this._value, this._tileSize, this._offset, position, destination,
-                        this._speed, this._x, this._y);
+        return new Tile(this._value, this._tileSize, this._offset, position,
+                this._speed, this._x, this._y);
     }
 }

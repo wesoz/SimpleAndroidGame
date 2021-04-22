@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.Align;
 import com.wesley.main.data.DataManager;
 import com.wesley.main.data.DataModel;
 import com.wesley.main.gameobject.Tiles;
+
 import java.util.ArrayList;
 
 public class Board extends Screen {
@@ -33,17 +34,20 @@ public class Board extends Screen {
     private int _size;
     private int _firstX;
     private int _firstY;
-    private boolean _isPlayerTurn;
     private BitmapFont _font;
     TextButton _btnUndo;
     Stage _stage;
     Table _restartDialogTable;
     Table _gameButtonsTable;
     DataManager _dataManager;
+    BitmapFont _bitmapFont;
 
     private Board() {
         super();
-        this._isPlayerTurn = true;
+
+        this._bitmapFont = new BitmapFont();
+        this._bitmapFont.setColor(Color.BLACK);
+        this._bitmapFont.getData().setScale(5);
         this._restartDialogTable = null;
         this._font = new BitmapFont();
         this._font.setColor(Color.WHITE);
@@ -51,12 +55,11 @@ public class Board extends Screen {
         this._lastMoves = new ArrayList<>();
     }
 
-    public Board(Tiles tiles, ArrayList<Tiles> lastMoves, int size, boolean isPlayerTurn) {
+    public Board(Tiles tiles, ArrayList<Tiles> lastMoves, int size) {
         this();
         this.initialize(size);
         this._tiles = tiles;
         this._lastMoves = lastMoves;
-        this._isPlayerTurn = isPlayerTurn;
     }
 
     public Board(int size) {
@@ -84,7 +87,7 @@ public class Board extends Screen {
     }
 
     private void saveState() {
-        DataModel dataModel = new DataModel(this._tiles, this._lastMoves, this._size, this._isPlayerTurn);
+        DataModel dataModel = new DataModel(this._tiles, this._lastMoves, this._size);
         this._dataManager.saveGame(dataModel);
     }
 
@@ -96,7 +99,7 @@ public class Board extends Screen {
         btnRestart = new Button(upDrawable);
         btnRestart.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) {
+            public void changed(ChangeEvent event, Actor actor) {
                 Board.this.buildRestartDialog();
             }
         });
@@ -104,12 +107,12 @@ public class Board extends Screen {
         upTexture = new Texture("buttons/undo.png");
         upDrawable = new TextureRegionDrawable(new TextureRegion(upTexture));
         BitmapFont font = new BitmapFont();
-        font.getData().setScale(4f);
+        font.getData().setScale(3f);
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.font = font;
         textButtonStyle.up = upDrawable;
         this._btnUndo = new TextButton("", textButtonStyle);
-        this._btnUndo.getLabel().setAlignment(Align.topRight);
+        this._btnUndo.getLabel().setAlignment(Align.center);
         this._btnUndo.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -192,17 +195,13 @@ public class Board extends Screen {
             return new MainMenu();
         }
 
-        if (this._tiles.getState() != Tiles.STATE.STATIC) {
-            this._tiles.update();
-            this._isPlayerTurn = false;
+        if (this._tiles.getState() == Tiles.STATE.PLAYER_TURN) {
+            this.handleInput();
+        } else if (this._tiles.getState() == Tiles.STATE.CREATE_TILE) {
+            this._tiles.createTile();
+            this.saveState();
         } else {
-            if (this._isPlayerTurn) {
-                this.handleInput();
-            } else {
-                this._tiles.createTile();
-                this._isPlayerTurn = true;
-                this.saveState();
-            }
+            this._tiles.update();
         }
 
         return this;
@@ -219,15 +218,15 @@ public class Board extends Screen {
 
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (deltaX > 0) {
-                    this._tiles.moveTiles(Tiles.DIRECTION.RIGHT);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.RIGHT);
                 } else {
-                    this._tiles.moveTiles(Tiles.DIRECTION.LEFT);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.LEFT);
                 }
             } else if (Math.abs(deltaX) < Math.abs(deltaY)) {
                 if (deltaY > 0) {
-                    this._tiles.moveTiles(Tiles.DIRECTION.DOWN);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.DOWN);
                 } else {
-                    this._tiles.moveTiles(Tiles.DIRECTION.UP);
+                    this._tiles.startMovingTiles(Tiles.DIRECTION.UP);
                 }
             }
         }
@@ -244,20 +243,26 @@ public class Board extends Screen {
             Tiles tiles = this._lastMoves.get(this._lastMoves.size() - 1);
             this._tiles = tiles;
             this._lastMoves.remove(tiles);
+            this.saveState();
         }
     }
 
     public void draw() {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        super._shapeRenderer.setColor(0.949f,0.9686f,0.9882f,1);
+        super._shapeRenderer.setColor(0.949f, 0.9686f, 0.9882f, 1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
-        for (int x = 0; x < this._tiles.getSize(); x++){
+        int offset = this._tiles.getTileSize() / 2;
+        for (int x = 0; x < this._tiles.getSize(); x++) {
             for (int y = 0; y < this._tiles.getSize(); y++) {
                 int xPos = this._firstX + (this._tiles.getTileSize() * x);
                 int yPos = this._firstY + (this._tiles.getTileSize() * y);
                 if (this._tiles.hasTile(x, y)) {
                     this._tiles.draw(super._shapeRenderer, super._spriteBatch, x, y);
+                    /*this._bitmapFont.draw(super._spriteBatch,
+                            "x = " + String.valueOf(x) + ", y = " + String.valueOf(y),
+                            x + (offset * 0.75f),
+                            y + (offset * 1.25f ));*/
                 }
                 this.drawBGRect(xPos, yPos);
             }
@@ -293,14 +298,13 @@ public class Board extends Screen {
 
     private void drawBGRect(int x, int y) {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        float borderWeight = 5f;
+        float borderWeight = 20f;
         Vector2 bottomLeft = new Vector2(x, y);
         Vector2 topLeft = new Vector2(x, y + this._tiles.getTileSize());
         Vector2 topRight = new Vector2(x + this._tiles.getTileSize(), y + this._tiles.getTileSize());
         Vector2 bottomRight = new Vector2(x + this._tiles.getTileSize(), y);
 
-        super._shapeRenderer.setColor(0,0,0,1);
-
+        super._shapeRenderer.setColor(0.7f, 0.7f, 0.74f, 1);
         super._shapeRenderer.rectLine(bottomLeft, topLeft, borderWeight);
         super._shapeRenderer.rectLine(topLeft, topRight, borderWeight);
         super._shapeRenderer.rectLine(topRight, bottomRight, borderWeight);
