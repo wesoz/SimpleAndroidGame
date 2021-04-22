@@ -21,11 +21,10 @@ public class Tile {
     private int _x;
     private int _y;
     private Tile _mergeTile;
-    private float _innerSquareSize;
-    private float _innerSquareOffset;
     private TileMovement _tileMovement;
     private float _totalElapsedTime;
-    private Animation _animation;
+    private Animation _mergeAnimation;
+    private boolean _shouldWriteValue;
 
     public float getSpeed() {
         return _speed;
@@ -35,8 +34,6 @@ public class Tile {
         this();
         this._tileSize = tileSize;
         this._offset = this._tileSize / 2;
-        this._innerSquareSize = this._tileSize * 0.8f;
-        this._innerSquareOffset = (this._tileSize - _innerSquareSize) / 2f;
         this.setValue(value);
         this.setPosition(position);
     }
@@ -64,7 +61,8 @@ public class Tile {
         this._mergeTile = null;
         this._tileMovement = null;
         this._totalElapsedTime = 0;
-        this._animation = new Animation();
+        this._mergeAnimation = new Animation();
+        this._shouldWriteValue = true;
     }
 
     public void setTileMovement(TileMovement tileMovement) {
@@ -77,6 +75,7 @@ public class Tile {
 
     public void doubleValue() {
         this.setValue(this._value * 2);
+        this.setMergeAnimationFrames();
     }
 
     public boolean match(Tile tile) {
@@ -127,53 +126,94 @@ public class Tile {
             default:
                 this._bgColor.set(30 / 255.0f, 179 / 255.0f, 30 / 255.0f, 1);
         }
-        this.setAnimationFrames();
     }
 
-    private void setAnimationFrames() {
-        SquareAnimationFrame[] animationFrames = new SquareAnimationFrame[3];
-
-        Vector2 offset = new Vector2(this._innerSquareOffset, this._innerSquareOffset);
-        Color color = new Color(this._bgColor.r + 0.2f, this._bgColor.g + 0.2f, this._bgColor.b + 0.2f, 1f);
-        animationFrames[0] = new SquareAnimationFrame(offset, color, this._innerSquareSize, 0.15f);
-
-        offset = new Vector2(this._innerSquareOffset, this._innerSquareOffset);
-        color = new Color(this._bgColor.r + 0.3f, this._bgColor.g + 0.3f, this._bgColor.b + 0.3f, 1f);
-        animationFrames[1] = new SquareAnimationFrame(offset, color, this._innerSquareSize, 0.15f);
-
-        offset = new Vector2(this._innerSquareOffset, this._innerSquareOffset);
-        color = new Color(this._bgColor.r + 0.4f, this._bgColor.g + 0.4f, this._bgColor.b + 0.4f, 1f);
-        animationFrames[2] = new SquareAnimationFrame(offset, color, this._innerSquareSize, 0.15f);
-
-        this._animation.replaceFrames(animationFrames, Animation.REPEAT.GO_BACK);
+    private Vector2 getCentralizedVector2(float outerSquare, float innerSquare) {
+        return new Vector2((outerSquare - innerSquare) / 2f, (outerSquare - innerSquare) / 2f);
     }
 
-    public void drawSquare(ShapeRenderer shapeRenderer, Vector2 position) {
-        shapeRenderer.setColor(this._bgColor);
-        shapeRenderer.rect(position.x, position.y, this._tileSize, this._tileSize);
+    private void setMergeAnimationFrames() {
+        SquareAnimationFrame[] animationFrames = new SquareAnimationFrame[5];
+
+        float duration = 2f / 60;
+
+        Color color = new Color(this._bgColor.r, this._bgColor.g, this._bgColor.b, 0.3f);
+        float squareSize = this._tileSize * 1.5f;
+        ;
+        Vector2 offset = this.getCentralizedVector2(this._tileSize, squareSize); // new Vector2(squareOffset, squareOffset); //new Vector2(this._innerSquareOffset, this._innerSquareOffset);
+        animationFrames[0] = new SquareAnimationFrame(offset, color, squareSize, duration);
+
+        squareSize = this._tileSize * 1.4f;
+        offset = this.getCentralizedVector2(this._tileSize, squareSize);
+        color = new Color(this._bgColor.r, this._bgColor.g, this._bgColor.b, 0.4f);
+        animationFrames[1] = new SquareAnimationFrame(offset, color, squareSize, duration);
+
+        squareSize = this._tileSize * 1.3f;
+        offset = this.getCentralizedVector2(this._tileSize, squareSize);
+        color = new Color(this._bgColor.r, this._bgColor.g, this._bgColor.b, 0.5f);
+        animationFrames[2] = new SquareAnimationFrame(offset, color, squareSize, duration);
+
+        squareSize = this._tileSize * 1.2f;
+        color = new Color(this._bgColor.r, this._bgColor.g, this._bgColor.b, 0.6f);
+        offset = this.getCentralizedVector2(this._tileSize, squareSize);
+        animationFrames[3] = new SquareAnimationFrame(offset, color, squareSize, duration);
+
+        squareSize = this._tileSize * 1.1f;
+        color = new Color(this._bgColor.r, this._bgColor.g, this._bgColor.b, 0.7f);
+        offset = this.getCentralizedVector2(this._tileSize, squareSize);
+        animationFrames[4] = new SquareAnimationFrame(offset, color, squareSize, duration);
+
+        this._mergeAnimation.replaceFrames(animationFrames, Animation.REPEAT.ONCE);
+    }
+
+    public void draw(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch) {
+        this.drawSquare(shapeRenderer);
+        this.writeValue(spriteBatch);
+    }
+
+    public void drawSquare(ShapeRenderer shapeRenderer) {
+        Vector2 position = this.getPosition();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        this._totalElapsedTime += Gdx.graphics.getDeltaTime();
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-        this._totalElapsedTime += Gdx.graphics.getDeltaTime();
+        SquareAnimationFrame mergeFrame = (SquareAnimationFrame) this._mergeAnimation.getNextFrame(this._totalElapsedTime);
+        if (mergeFrame != null) {
+            this._shouldWriteValue = false;
+            shapeRenderer.setColor(mergeFrame.getColor());
+            shapeRenderer.rect(position.x + mergeFrame.getOffset().x, position.y + mergeFrame.getOffset().y, mergeFrame.getSize(), mergeFrame.getSize());
+        } else {
+            this._shouldWriteValue = true;
+            shapeRenderer.setColor(this._bgColor);
+            shapeRenderer.rect(position.x, position.y, this._tileSize, this._tileSize);
 
-        SquareAnimationFrame frame = (SquareAnimationFrame) this._animation.getNextFrame(this._totalElapsedTime);
-        shapeRenderer.setColor(frame.getColor());
-        shapeRenderer.rect(position.x + frame.getOffset().x, position.y + frame.getOffset().y, frame.getSize(), frame.getSize());
+            float innerSquareSize = this._tileSize * 0.8f;
+            Vector2 offset = this.getCentralizedVector2(this._tileSize, innerSquareSize);
 
+            shapeRenderer.setColor(new Color(this._bgColor.r + 0.3f, this._bgColor.g + 0.3f, this._bgColor.b + 0.3f, 1f));
+            shapeRenderer.rect(position.x + offset.x, position.y + offset.y, innerSquareSize, innerSquareSize);
+        }
+        shapeRenderer.end();
     }
 
-    public void writeValue(SpriteBatch spriteBatch, Vector2 position) {
-        String value = String.valueOf(this._value);
+    public void writeValue(SpriteBatch spriteBatch) {
+        if (this._shouldWriteValue) {
+            spriteBatch.begin();
+            Vector2 position = this.getPosition();
+            String value = String.valueOf(this._value);
 
-        //Adjust the font size according to the size of the number so it fits the tile;
-        //The bigger the number, the smaller the font;
-        this._bitmapFont.getData().setScale(5f - ((float) value.length() * 0.4f));
-        this._bitmapFont.draw(spriteBatch,
-                value,
-                //Adjust the text offset according to the size of the font;
-                //The smaller the font, more to the left;
-                position.x + (this._offset * (0.85f - ((value.length() - 1) * 0.12f))),
-                position.y + (this._offset * 1.2f));
+            //Adjust the font size according to the size of the number so it fits the tile;
+            //The bigger the number, the smaller the font;
+            this._bitmapFont.getData().setScale(5f - ((float) value.length() * 0.4f));
+            this._bitmapFont.draw(spriteBatch,
+                    value,
+                    //Adjust the text offset according to the size of the font;
+                    //The smaller the font, more to the left;
+                    position.x + (this._offset * (0.85f - ((value.length() - 1) * 0.12f))),
+                    position.y + (this._offset * 1.2f));
+            spriteBatch.end();
+        }
     }
 
     public void dispose() {

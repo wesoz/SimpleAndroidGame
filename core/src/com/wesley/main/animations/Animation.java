@@ -8,6 +8,7 @@ public class Animation {
 
     public enum REPEAT {
         NONE,
+        ONCE,
         LOOP,
         GO_BACK
     }
@@ -20,9 +21,7 @@ public class Animation {
 
     public Animation() {
         this._frames = new ArrayList<>();
-        this._currentFrame = 0;
-        this._lastElapsedTime = -1;
-        this._increment = 1;
+        this.clearValues();
     }
 
     public Animation(AnimationFrame[] frames, REPEAT repeat) {
@@ -30,8 +29,15 @@ public class Animation {
         this.addFrames(frames, repeat);
     }
 
-    public void replaceFrames(AnimationFrame[] frames, REPEAT repeat) {
+    private void clearValues () {
         this._frames.clear();
+        this._currentFrame = 0;
+        this._lastElapsedTime = -1;
+        this._increment = 1;
+    }
+
+    public void replaceFrames(AnimationFrame[] frames, REPEAT repeat) {
+        this.clearValues();
         this.addFrames(frames, repeat);
     }
 
@@ -41,6 +47,9 @@ public class Animation {
     }
 
     public AnimationFrame getNextFrame(float elapsedTime) {
+        if (this._frames.size() == 0) {
+            return null;
+        }
         AnimationFrame frame = this._frames.get(_currentFrame);
         if (this._lastElapsedTime == -1) {
             this._lastElapsedTime = elapsedTime;
@@ -54,6 +63,8 @@ public class Animation {
                 this._currentFrame = 0;
             } else if (this._repeat == REPEAT.GO_BACK) {
                 this._increment *= -1;
+            } else if (this._repeat == REPEAT.ONCE) {
+                this.clearValues();
             }
         }
 
