@@ -47,10 +47,8 @@ public class Tile {
         this._y = y;
     }
 
-    public void move(float deltaX, float deltaY) {
-        float x = this._position.x + deltaX;
-        float y = this._position.y + deltaY;
-        this._position.set(new Vector2(x, y));
+    public void move(Vector2 velocity) {
+        this._position.add(velocity);
     }
 
     public Tile() {

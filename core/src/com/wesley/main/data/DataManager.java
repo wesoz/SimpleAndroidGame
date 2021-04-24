@@ -16,15 +16,15 @@ public class DataManager {
 
     public DataManager(String fileID) {
         this._fileID = fileID;
-        String saveFile = "saveData_2048_" + this._fileID;
+        String saveFile = DataModel.SAVE_FILE_NAME + this._fileID;
         this._preferences = Gdx.app.getPreferences(saveFile);
     }
 
     public void saveGame(DataModel dataModel) {
         this._preferences.clear();
-        this.saveTiles(dataModel.getTiles(), "tiles");
-        this.saveLastMoves(dataModel.getLastMoves(), "lastMoves");
-        this._preferences.putInteger("size", dataModel.getSize());
+        this.saveTiles(dataModel.getTileGrid(), DataModel.OBJECT_TILE_GRID);
+        this.saveLastMoves(dataModel.getLastMoves(), DataModel.OBJECT_LAST_MOVES);
+        this._preferences.putInteger(DataModel.FIELD_SIZE, dataModel.getSize());
         this._preferences.flush();
     }
 
@@ -50,13 +50,13 @@ public class DataManager {
 
         boolean isFirstExecution = tileGrid.isFirstExecution();
 
-        this._preferences.putInteger(objectName + "tileSize", tileSize);
-        this._preferences.putInteger(objectName + "size", size);
-        this._preferences.putInteger(objectName + "maxTiles", maxTiles);
-        this._preferences.putInteger(objectName + "tilesCount", tilesCount);
-        this._preferences.putFloat(objectName + "offset.x", offset.x);
-        this._preferences.putFloat(objectName + "offset.y", offset.y);
-        this._preferences.putBoolean(objectName + "isFirstExecution", isFirstExecution);
+        this._preferences.putInteger(objectName + DataModel.FIELD_TILE_SIZE, tileSize);
+        this._preferences.putInteger(objectName + DataModel.FIELD_SIZE, size);
+        this._preferences.putInteger(objectName + DataModel.FIELD_MAX_TILES, maxTiles);
+        this._preferences.putInteger(objectName + DataModel.FIELD_TILES_COUNT, tilesCount);
+        this._preferences.putFloat(objectName + DataModel.FIELD_OFFSET_X, offset.x);
+        this._preferences.putFloat(objectName + DataModel.FIELD_OFFSET_Y, offset.y);
+        this._preferences.putBoolean(objectName + DataModel.FIELD_IS_FIRST_EXEC, isFirstExecution);
     }
 
     private void saveTile(Tile tile, String objectName) {
@@ -71,38 +71,37 @@ public class DataManager {
             int x = tile.getX();
             int y = tile.getY();
 
-            this._preferences.putInteger(objectName + "value", value);
-            this._preferences.putInteger(objectName + "tileSize", tileSize);
-            this._preferences.putFloat(objectName + "offset", offset);
-            this._preferences.putFloat(objectName + "position.x", position.x);
-            this._preferences.putFloat(objectName + "position.y", position.y);
-            this._preferences.putFloat(objectName + "speed", speed);
-            this._preferences.putInteger(objectName + "x", x);
-            this._preferences.putInteger(objectName + "y", y);
+            this._preferences.putInteger(objectName + DataModel.FIELD_TILE_VALUE, value);
+            this._preferences.putInteger(objectName + DataModel.FIELD_TILE_SIZE, tileSize);
+            this._preferences.putFloat(objectName + DataModel.FIELD_TILE_OFFSET, offset);
+            this._preferences.putFloat(objectName + DataModel.FIELD_TILE_POSITION_X, position.x);
+            this._preferences.putFloat(objectName + DataModel.FIELD_TILE_POSITION_Y, position.y);
+            this._preferences.putFloat(objectName + DataModel.FIELD_TILE_SPEED, speed);
+            this._preferences.putInteger(objectName + DataModel.FIELD_TILE_X, x);
+            this._preferences.putInteger(objectName + DataModel.FIELD_TILE_Y, y);
         }
     }
 
     private void deleteTile(String tileID) {
 
-        this._preferences.remove(tileID + "value");
-        this._preferences.remove(tileID + "tileSize");
-        this._preferences.remove(tileID + "offset");
-        this._preferences.remove(tileID + "position.x");
-        this._preferences.remove(tileID + "position.y");
-        this._preferences.remove(tileID + "destination.x");
-        this._preferences.remove(tileID + "destination.y");
-        this._preferences.remove(tileID + "speed");
-        this._preferences.remove(tileID + "x");
-        this._preferences.remove(tileID + "y");
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_VALUE);
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_SIZE);
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_OFFSET);
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_POSITION_X);
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_POSITION_Y);
+        // this._preferences.remove(tileID + "destination.x");
+        // this._preferences.remove(tileID + "destination.y");
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_SPEED);
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_X);
+        this._preferences.remove(tileID + DataModel.FIELD_TILE_Y);
     }
 
     public DataModel loadGame() {
-        int size = this._preferences.getInteger("size", -1);
+        int size = this._preferences.getInteger(DataModel.FIELD_SIZE, -1);
         if (size == -1) return null;
 
-        TileGrid tileGrid = this.loadTiles("tiles");
-        ArrayList<TileGrid> lastMoves = this.loadLastMoves("lastMoves");
-        boolean isPlayerTurn = this._preferences.getBoolean("isPlayerTurn", false);
+        TileGrid tileGrid = this.loadTiles(DataModel.OBJECT_TILE_GRID);
+        ArrayList<TileGrid> lastMoves = this.loadLastMoves(DataModel.OBJECT_LAST_MOVES);
 
         DataModel dataModel = new DataModel(tileGrid, lastMoves, size);
 
@@ -128,7 +127,7 @@ public class DataManager {
         Vector2 offset;
         boolean isFirstExecution;
 
-        size = this._preferences.getInteger(objectName + "size", -1);
+        size = this._preferences.getInteger(objectName + DataModel.FIELD_SIZE, -1);
         if (size == -1) return null;
 
         tiles = new Tile[size][size];
@@ -140,29 +139,29 @@ public class DataManager {
             }
         }
 
-        tileSize = this._preferences.getInteger(objectName + "tileSize", 0);
-        maxTiles = this._preferences.getInteger(objectName + "maxTiles", 0);
-        tilesCount = this._preferences.getInteger(objectName + "tilesCount", 0);
-        offset = new Vector2(this._preferences.getFloat(objectName + "offset.x", 0),
-                this._preferences.getFloat(objectName + "offset.y", 0));
-        isFirstExecution = this._preferences.getBoolean(objectName + "isFirstExecution", false);
+        tileSize = this._preferences.getInteger(objectName + DataModel.FIELD_TILE_SIZE, 0);
+        maxTiles = this._preferences.getInteger(objectName + DataModel.FIELD_MAX_TILES, 0);
+        tilesCount = this._preferences.getInteger(objectName + DataModel.FIELD_TILES_COUNT, 0);
+        offset = new Vector2(this._preferences.getFloat(objectName + DataModel.FIELD_OFFSET_X, 0),
+                this._preferences.getFloat(objectName + DataModel.FIELD_OFFSET_Y, 0));
+        isFirstExecution = this._preferences.getBoolean(objectName + DataModel.FIELD_IS_FIRST_EXEC, false);
 
         return new TileGrid(tiles, TileGrid.DIRECTION.DOWN, TileGrid.STATE.PLAYER_TURN,
                 tileSize, size, maxTiles, tilesCount, offset, isFirstExecution);
     }
 
     private Tile loadTile(String objectName) {
-        int value = this._preferences.getInteger(objectName + "value", -1);
+        int value = this._preferences.getInteger(objectName + DataModel.FIELD_TILE_VALUE, -1);
         ;
         if (value == -1) return null;
 
-        int tileSize = this._preferences.getInteger(objectName + "tileSize", 0);
-        float offset = this._preferences.getFloat(objectName + "offset", 0);
-        Vector2 position = new Vector2(this._preferences.getFloat(objectName + "position.x", 0),
-                this._preferences.getFloat(objectName + "position.y", 0));
-        float speed = this._preferences.getFloat(objectName + "speed", 0);
-        int x = this._preferences.getInteger(objectName + "x", 0);
-        int y = this._preferences.getInteger(objectName + "y", 0);
+        int tileSize = this._preferences.getInteger(objectName + DataModel.FIELD_TILE_SIZE, 0);
+        float offset = this._preferences.getFloat(objectName + DataModel.FIELD_TILE_OFFSET, 0);
+        Vector2 position = new Vector2(this._preferences.getFloat(objectName + DataModel.FIELD_TILE_POSITION_X, 0),
+                this._preferences.getFloat(objectName + DataModel.FIELD_TILE_POSITION_Y, 0));
+        float speed = this._preferences.getFloat(objectName + DataModel.FIELD_TILE_SPEED, 0);
+        int x = this._preferences.getInteger(objectName + DataModel.FIELD_TILE_X, 0);
+        int y = this._preferences.getInteger(objectName + DataModel.FIELD_TILE_Y, 0);
 
         return new Tile(value, tileSize, offset, position, speed, x, y);
     }
