@@ -66,12 +66,16 @@ public class TileGrid {
         this._isFirstExecution = isFirstExecution;
     }
 
+    public float getSpeed() {
+        return 0.04f * this._size;
+    }
+
     public int getSize() {
-        return _size;
+        return this._size;
     }
 
     public int getTileSize() {
-        return _tileSize;
+        return this._tileSize;
     }
 
     public void createTile() {
@@ -158,10 +162,6 @@ public class TileGrid {
                 this._state = STATE.CREATE_TILE;
             }
         }
-    }
-
-    private float getDelta(float position, float destination, float speed) {
-        return position == destination ? 0 : Math.min(Math.abs(position - destination), Math.abs(speed));
     }
 
     private boolean nextFreeTileTest(MatrixPosition tilePosition, MatrixPosition targetStart, int count) {
@@ -258,7 +258,8 @@ public class TileGrid {
         for (int i = 0; i < this._tilesToMove.size(); i++) {
             Tile tileToMove = this._tilesToMove.get(i);
             TileMovement movement = tileToMove.getTileMovement();
-            tileToMove.move(movement.Delta.x, movement.Delta.y);
+            Vector2 velocity = movement.getVelocity(Gdx.graphics.getDeltaTime());
+            tileToMove.move(velocity);
             if (movement.isInFinalDestination()) {
                 tileToMove.setTileMovement(null);
                 if (tileToMove.getMergeTile() != null) {
@@ -273,13 +274,10 @@ public class TileGrid {
 
     private TileMovement getTileMovement(Tile tileToMove, MatrixPosition currentPosition, MatrixPosition target) {
         Vector2 destination = this.getInBoardPosition(target.x, target.y);
-        float deltaX = this.getDelta(tileToMove.getPosition().x, destination.x, tileToMove.getSpeed()) * (tileToMove.getPosition().x > destination.x ? -1 : 1);
-        float deltaY = this.getDelta(tileToMove.getPosition().y, destination.y, tileToMove.getSpeed()) * (tileToMove.getPosition().y > destination.y ? -1 : 1);
 
         return new TileMovement(tileToMove,
                 new MatrixPosition(currentPosition.x, currentPosition.y),
-                new Vector2(deltaX, deltaY),
-                new MatrixPosition(target.x, target.y), destination);
+                new MatrixPosition(target.x, target.y), destination, this.getSpeed());
     }
 
     private void exchangePosition(int x1, int y1, int x2, int y2) {
