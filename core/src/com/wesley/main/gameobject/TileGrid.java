@@ -95,13 +95,7 @@ public class TileGrid {
 
     public void draw(Tile tile, ShapeRenderer shapeRenderer, SpriteBatch spriteBatch) {
         if (tile != null) {
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            tile.drawSquare(shapeRenderer, tile.getPosition());
-            shapeRenderer.end();
-            spriteBatch.begin();
-            tile.writeValue(spriteBatch, tile.getPosition());
-
-            spriteBatch.end();
+            tile.draw(shapeRenderer, spriteBatch);
 
             if (tile.getMergeTile() != null) {
                 this.draw(tile.getMergeTile(), shapeRenderer, spriteBatch);
