@@ -139,7 +139,7 @@ public class Tile {
 
         Color color = new Color(this._bgColor.r, this._bgColor.g, this._bgColor.b, 0.3f);
         float squareSize = this._tileSize * 1.5f;
-        ;
+
         Vector2 offset = this.getCentralizedVector2(this._tileSize, squareSize); // new Vector2(squareOffset, squareOffset); //new Vector2(this._innerSquareOffset, this._innerSquareOffset);
         animationFrames[0] = new SquareAnimationFrame(offset, color, squareSize, duration);
 
