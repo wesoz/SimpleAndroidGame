@@ -65,9 +65,8 @@ public class MainMenu extends Screen {
     private void loadBoard(int size) {
         Board board;
         DataModel dataModel = new DataManager(Board.getSaveFileID(size)).loadGame();
-        if (dataModel != null)
-        {
-            board = new Board(dataModel.getTiles(), dataModel.getLastMoves(), dataModel.getSize());
+        if (dataModel != null && dataModel.getTileGrid() != null) {
+            board = new Board(dataModel.getTileGrid(), dataModel.getLastMoves(), dataModel.getSize());
         } else {
             board = new Board(size);
         }
