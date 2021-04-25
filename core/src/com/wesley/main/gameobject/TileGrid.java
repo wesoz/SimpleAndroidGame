@@ -67,7 +67,7 @@ public class TileGrid {
     }
 
     public float getSpeed() {
-        return 0.04f * this._size;
+        return 0.035f * this._size;
     }
 
     public int getSize() {
