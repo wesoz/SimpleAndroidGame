@@ -169,6 +169,10 @@ public class Tile {
         this.writeValue(spriteBatch);
     }
 
+    private Color addToColor(Color color, float r, float g, float b, float a) {
+        return new Color(Math.max(color.r + r, 0), Math.max(color.g + g, 0), Math.max(color.b + b, 0), a);
+    }
+
     public void drawSquare(ShapeRenderer shapeRenderer) {
         Vector2 position = this.getPosition();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -183,13 +187,13 @@ public class Tile {
             shapeRenderer.rect(position.x + mergeFrame.getOffset().x, position.y + mergeFrame.getOffset().y, mergeFrame.getSize(), mergeFrame.getSize());
         } else {
             this._shouldWriteValue = true;
-            shapeRenderer.setColor(this._bgColor);
+            shapeRenderer.setColor(addToColor(this._bgColor, -0.3f, -0.3f, -0.3f, 1f));
             shapeRenderer.rect(position.x, position.y, this._tileSize, this._tileSize);
 
             float innerSquareSize = this._tileSize * 0.8f;
             Vector2 offset = this.getCentralizedVector2(this._tileSize, innerSquareSize);
 
-            shapeRenderer.setColor(new Color(this._bgColor.r + 0.3f, this._bgColor.g + 0.3f, this._bgColor.b + 0.3f, 1f));
+            shapeRenderer.setColor(this._bgColor);
             shapeRenderer.rect(position.x + offset.x, position.y + offset.y, innerSquareSize, innerSquareSize);
         }
         shapeRenderer.end();
