@@ -93,7 +93,7 @@ public class Tile {
                 this._bgColor.set(1, 1, 1, 1);
                 break;
             case 2:
-                this._bgColor.set(250 / 255.0f, 242 / 255.0f, 180 / 255.0f, 1);
+                this._bgColor.set(248 / 255.0f, 220 / 255.0f, 174 / 255.0f, 1);
                 break;
             case 4:
                 this._bgColor.set(245 / 255.0f, 227 / 255.0f, 86 / 255.0f, 1);

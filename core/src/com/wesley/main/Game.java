@@ -30,7 +30,7 @@ public class Game extends ApplicationAdapter{
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(0.4f, 0.6f, 0.8f, 0);
+		Gdx.gl.glClearColor(0.47f,0.56f,0.61f, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		Screen nextScreen = this._currentScreen.update();
@@ -40,7 +40,9 @@ public class Game extends ApplicationAdapter{
 			this._currentScreen.dispose();
 			this._currentScreen = nextScreen;
 		}
-		this.getFrameRate();
+		if (false) {
+			this.getFrameRate();
+		}
 	}
 
 	private void getFrameRate() {

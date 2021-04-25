@@ -249,7 +249,7 @@ public class Board extends Screen {
 
     public void draw() {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        super._shapeRenderer.setColor(0.949f, 0.9686f, 0.9882f, 1);
+        super._shapeRenderer.setColor(0.88f,0.88f,0.88f, 1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
         for (int x = 0; x < this._tileGrid.getSize(); x++) {
@@ -279,7 +279,7 @@ public class Board extends Screen {
             Gdx.gl.glEnable(GL20.GL_BLEND);
             Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            super._shapeRenderer.setColor(1f, 0.7f, 0.2f, 0.8f);
+            super._shapeRenderer.setColor(0.26f, 0.26f, 0.26f, 0.8f);
             super._shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             super._shapeRenderer.end();
             super._spriteBatch.begin();
@@ -297,7 +297,7 @@ public class Board extends Screen {
         Vector2 topRight = new Vector2(x + this._tileGrid.getTileSize(), y + this._tileGrid.getTileSize());
         Vector2 bottomRight = new Vector2(x + this._tileGrid.getTileSize(), y);
 
-        super._shapeRenderer.setColor(0.7f, 0.7f, 0.74f, 1);
+        super._shapeRenderer.setColor(0.24f, 0.24f, 0.31f, 1);
         super._shapeRenderer.rectLine(bottomLeft, topLeft, borderWeight);
         super._shapeRenderer.rectLine(topLeft, topRight, borderWeight);
         super._shapeRenderer.rectLine(topRight, bottomRight, borderWeight);
