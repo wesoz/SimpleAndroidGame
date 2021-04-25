@@ -42,6 +42,10 @@ public class Board extends Screen {
     DataManager _dataManager;
     BitmapFont _bitmapFont;
 
+    public interface IBoardCallback {
+        void beforeGetMoves();
+    }
+
     private Board() {
         super();
 
@@ -70,7 +74,12 @@ public class Board extends Screen {
 
     private void initialize(int size) {
         this._size = size;
-        this._tileGrid = new TileGrid(this._size);
+        this._tileGrid = new TileGrid(this._size, new IBoardCallback() {
+            @Override
+            public void beforeGetMoves() {
+                addMove();
+            }
+        });
         this.calculateBoundaries();
         _dataManager = new DataManager(Board.getSaveFileID(size));
         this.setupScreenControls();
@@ -214,8 +223,6 @@ public class Board extends Screen {
             if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30)
                 return;
 
-            this.addMove();
-
             if (Math.abs(deltaX) > Math.abs(deltaY)) {
                 if (deltaX > 0) {
                     this._tileGrid.startMovingTiles(TileGrid.DIRECTION.RIGHT);
@@ -235,7 +242,9 @@ public class Board extends Screen {
     private void addMove() {
         if (this._lastMoves.size() == Board.LAST_MOVES_LIMIT)
             this._lastMoves.remove(0);
-        this._lastMoves.add(this._tileGrid.clone());
+        TileGrid tileGrid = this._tileGrid.clone();
+        tileGrid.setState(TileGrid.STATE.PLAYER_TURN);
+        this._lastMoves.add(tileGrid);
     }
 
     private void popMove() {
@@ -249,7 +258,7 @@ public class Board extends Screen {
 
     public void draw() {
         super._shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        super._shapeRenderer.setColor(0.88f,0.88f,0.88f, 1);
+        super._shapeRenderer.setColor(0.88f, 0.88f, 0.88f, 1);
         super._shapeRenderer.rect(this._firstX, this._firstY, this._gridSize, this._gridSize);
         super._shapeRenderer.end();
         for (int x = 0; x < this._tileGrid.getSize(); x++) {

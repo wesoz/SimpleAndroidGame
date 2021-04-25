@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import com.wesley.main.screen.Board;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +36,14 @@ public class TileGrid {
     private final Random _random;
     private boolean _isFirstExecution;
     private final List<Tile> _tilesToMove;
+    private static Board.IBoardCallback BoardCallback;
 
     public TileGrid() {
         this._random = new Random();
         this._tilesToMove = new ArrayList<>();
     }
 
-    public TileGrid(int size) {
+    public TileGrid(int size, Board.IBoardCallback boardCallback) {
         this();
         this._size = size;
         this._tileSize = (Gdx.graphics.getWidth() - 80) / size;
@@ -50,6 +52,7 @@ public class TileGrid {
         this._tilesCount = 0;
         this._state = STATE.PLAYER_TURN;
         this._isFirstExecution = false;
+        this.BoardCallback = boardCallback;
     }
 
     public TileGrid(Tile[][] tiles, DIRECTION direction, STATE state, int tileSize,
@@ -66,8 +69,12 @@ public class TileGrid {
         this._isFirstExecution = isFirstExecution;
     }
 
+    public void setState(STATE state) {
+        this._state = state;
+    }
+
     public float getSpeed() {
-        return 0.035f * this._size;
+        return 0.15f;
     }
 
     public int getSize() {
@@ -86,7 +93,12 @@ public class TileGrid {
             x = _random.nextInt(this._tiles.length);
             y = _random.nextInt(this._tiles[0].length);
         } while (this._tiles[x][y] != null);
-        this.setTile(new Tile(this._tileSize, 2, this.getInBoardPosition(x, y)), x, y);
+
+        int value = 2;
+        if (this._tilesCount >= 4) {
+            value = this._random.nextFloat() > 0.4 ? 2 : 4;
+        }
+        this.setTile(new Tile(this._tileSize, value, this.getInBoardPosition(x, y)), x, y);
         this._tilesCount++;
         this._state = STATE.PLAYER_TURN;
     }
@@ -214,6 +226,9 @@ public class TileGrid {
             if (tileToMove.getTileMovement() == null) {
                 MatrixPosition targetMatrixPosition = this.getNextFreeTile(currentPosition, targetPosition, increment);
                 if (targetMatrixPosition != null) {
+                    if (this._tilesToMove.size() == 0) {
+                        TileGrid.BoardCallback.beforeGetMoves();
+                    }
                     this.exchangePosition(currentPosition.x, currentPosition.y, targetMatrixPosition.x, targetMatrixPosition.y);
                     tileToMove.setTileMovement(this.getTileMovement(tileToMove, currentPosition, targetMatrixPosition));
                     this._tilesToMove.add(tileToMove);
@@ -265,6 +280,7 @@ public class TileGrid {
                 if (tileToMove.getMergeTile() != null) {
                     tileToMove.setMergeTile(null);
                     tileToMove.doubleValue();
+                    this._tilesCount--;
                 }
                 this._tilesToMove.remove(i);
                 i--;
@@ -283,7 +299,6 @@ public class TileGrid {
     private void exchangePosition(int x1, int y1, int x2, int y2) {
         this.setTile(this._tiles[x1][y1], x2, y2);
         this.setTile(null, x1, y1);
-        this._tilesCount--;
     }
 
     // END TILES MOVEMENT
